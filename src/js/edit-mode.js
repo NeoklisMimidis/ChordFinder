@@ -61,6 +61,7 @@ const cancelBtn = document.getElementById('cancel-btn');
 let clickBuffer; // Store into a variable the fetched click sound for repeated usage
 let lastSelectedMarker;
 let isWebAudioInitialized = false;
+let audioContext, primaryGainControl;
 export let editState = false; // true of false edit state(toggle Edit)
 export let snapOnBeatsState = false;
 export let clickTrackState = false;
