@@ -263,8 +263,8 @@ export function editModeEvents(wavesurfer) {
 
   // cancel click
   cancelBtn.addEventListener('click', () => {
-    editChord((cancel = true));
-    closeModal((cancel = true));
+    editChord(true);
+    closeModal(true);
   });
 
   // apply click
@@ -363,7 +363,7 @@ function toggleEdit() {
     button.classList.toggle('d-none');
   });
 
-  updateMarkerDisplayWithColorizedRegions((editModeStyle = true));
+  updateMarkerDisplayWithColorizedRegions(true);
 
   // Tippy (tooltips) related functionality
   editModeControls.classList.toggle('pointer-events-disabled');

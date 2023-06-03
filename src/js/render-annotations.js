@@ -143,7 +143,7 @@ export function renderAnnotations(annotationData) {
   });
   console.log('Markers have been successfully rendered! ✌️');
 
-  updateMarkerDisplayWithColorizedRegions((editModeStyle = true));
+  updateMarkerDisplayWithColorizedRegions(true);
 }
 
 export function addMarkerAtTime(
