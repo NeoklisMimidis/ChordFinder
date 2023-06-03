@@ -321,11 +321,12 @@ export function resetEditOptions() {
 
   // Tippy (tooltips) related functionality reset BUG why it doesnt remove?
   editModeControls.classList.remove('pointer-events-disabled');
-  console.log(editModeControls, 'editModeControls');
   const questionIcon = document.querySelector('.fa-circle-question');
   const infoIcon = document.querySelector('.fa-circle-info');
-  questionIcon.classList.add('d-none');
-  infoIcon.classList.remove('d-none');
+  questionIcon.classList.remove('d-none');
+  infoIcon.classList.add('d-none');
+
+  console.log('resetEditOptions is complete 😁');
 }
 
 // - Center controls
