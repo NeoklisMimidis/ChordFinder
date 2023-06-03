@@ -35,10 +35,10 @@ fileSelectHandlers('#import-audio-btn', loadAudioFile);
 fileSelectHandlers('#analyze-chords-btn', loadJAMS, '.jams');
 
 // wavesurfer ready event occur every time a new audio is loaded
-wavesurfer.on('ready', function () {
-  resetAudioPlayer();
-  console.log('Waveform ready! 👍');
-});
+// wavesurfer.on('ready', function () {
+//   resetAudioPlayer();
+//   console.log('Waveform ready! 👍');
+// });
 
 // catching wavesurfer errors
 wavesurfer.on('error', function (error) {
@@ -47,18 +47,23 @@ wavesurfer.on('error', function (error) {
 
 let cleanState = true;
 // Only execute the following on first load!
-if (cleanState === true) {
-  try {
-    // Attach the required events for the application
-    editModeEvents(wavesurfer);
-    audioPlayerEvents(wavesurfer);
-    cleanState = false;
+wavesurfer.on('ready', function () {
+  resetAudioPlayer();
+  if (cleanState === true) {
+    try {
+      // Attach the required events for the application
+      editModeEvents(wavesurfer);
+      audioPlayerEvents(wavesurfer);
+      cleanState = false;
 
-    console.log('Events Ready! 👍');
-  } catch (error) {
-    console.error('Error in wavesurfer ready callback!');
+      console.log('Events Ready! 👍');
+    } catch (error) {
+      console.error('Error in wavesurfer ready callback!');
+    }
+
+    console.log('Waveform ready! 👍');
   }
-}
+});
 
 // - Testing files
 // Local files (Parcel 2 loading local files requires url: in front)

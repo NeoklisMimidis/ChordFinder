@@ -149,11 +149,11 @@ export function audioPlayerEvents(wavesurfer) {
     wavesurfer.stop();
     wavesurfer.seekAndCenter(0);
 
-    // Do the following only after pre-face stage, so annotation is also loaded
-    const editOptions = document
-      .querySelector('.edit-options')
+    // This is a gimmick check to see if the annotation is loaded (bcs then info icon is displayed)
+    const info = document
+      .querySelector('#info-question')
       .classList.contains('d-none');
-    if (editOptions) return;
+    if (info) return;
     updateMarkerDisplayWithColorizedRegions();
   });
 
@@ -315,12 +315,13 @@ function _playPauseToggleStates() {
   playBtn.classList.toggle('d-none');
   pauseBtn.classList.toggle('d-none');
 
-  // Do the following only after pre-face stage, so annotation is also loaded
-  const editOptions = document
-    .querySelector('.edit-options')
+  // This is a gimmick check to see if the annotation is loaded (bcs then info icon is displayed)
+  const info = document
+    .querySelector('#info-question')
     .classList.contains('d-none');
-  if (editOptions) return;
+  if (info) return;
   // ..and audio is playing
+  console.log('what??');
   if (playBtn.classList.contains('d-none')) return;
   updateMarkerDisplayWithColorizedRegions();
 }
