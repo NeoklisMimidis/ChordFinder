@@ -135,8 +135,6 @@ export function loadAudioFile(input) {
 export function audioPlayerEvents(wavesurfer) {
   /* Events (for audio player) */
 
-  wavesurferCursor = document.querySelector('#waveform > wave > wave');
-
   //  toggle on/off mute
   muteUnmuteBtn.addEventListener('click', muteUnmute);
 
@@ -154,7 +152,7 @@ export function audioPlayerEvents(wavesurfer) {
       .querySelector('#info-question')
       .classList.contains('d-none');
     if (info) return;
-    updateMarkerDisplayWithColorizedRegions();
+    // updateMarkerDisplayWithColorizedRegions();
   });
 
   // play/pause with space button if playback started
@@ -323,7 +321,7 @@ function _playPauseToggleStates() {
   // ..and audio is playing
   console.log('what??');
   if (playBtn.classList.contains('d-none')) return;
-  updateMarkerDisplayWithColorizedRegions();
+  // updateMarkerDisplayWithColorizedRegions();
 }
 
 function _spaceKeyPlayPause(event) {
