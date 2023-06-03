@@ -386,7 +386,7 @@ function addBeatAndChord(e) {
   const startingBeatChord = e.data['mirex_chord']; // get the chord assigned
   const currentTimePosition = wavesurfer.getCurrentTime();
 
-  addMarkerAtTime((time = currentTimePosition), (label = startingBeatChord));
+  addMarkerAtTime(currentTimePosition, startingBeatChord);
 
   updateMarkerDisplayWithColorizedRegions();
 }
@@ -412,11 +412,7 @@ function editBeatTiming(marker) {
   const markerLabel = marker.mirLabel;
   wavesurfer.markers.remove(marker);
 
-  addMarkerAtTime(
-    (time = markerTime),
-    (label = markerLabel),
-    (markerType = 'edited')
-  );
+  addMarkerAtTime(markerTime, markerLabel, 'edited');
 
   updateMarkerDisplayWithColorizedRegions();
 }
@@ -470,14 +466,18 @@ function editChord(cancel = false) {
   const lastSelectedMarkerTime = lastSelectedMarker.time;
   wavesurfer.markers.remove(lastSelectedMarker);
 
-  // ... a later one will replace him
+  // ... a later one will replace him with:
+  // selectedChord or on Cancel revertChord
+  const label = cancel ? revertChord : selectedChord;
+
+  // all markers draggable EXCEPT first marker (at time 0.0)
+  const draggable = lastSelectedMarkerTime === 0.0 ? false : true;
+
   const newSelectedMarker = addMarkerAtTime(
-    (time = lastSelectedMarkerTime),
-    // selectedChord or on Cancel revertChord
-    (label = cancel ? revertChord : selectedChord),
-    (markerType = 'replaced'),
-    // all markers draggable EXCEPT first marker (at time 0.0)
-    (draggable = lastSelectedMarkerTime === 0.0 ? false : true)
+    lastSelectedMarkerTime,
+    label,
+    'replaced',
+    draggable
   );
 
   // Colorizing again the span (label element)

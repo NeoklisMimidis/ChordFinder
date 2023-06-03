@@ -130,20 +130,15 @@ export function renderAnnotations(annotationData) {
       let firstMarkerLabel;
       if (startTime !== 0) {
         // This will be the second marker bcs one more will be added before after that if statement (below)
-        addMarkerAtTime((time = startTime), (label = chordLabel));
+        addMarkerAtTime(startTime, chordLabel);
 
         firstMarkerLabel = 'N';
       } else {
         firstMarkerLabel = chordLabel;
       }
-      const firstMarker = addMarkerAtTime(
-        (time = 0.0),
-        (label = firstMarkerLabel),
-        (markerType = 'new'),
-        (draggable = false)
-      );
+      const firstMarker = addMarkerAtTime(0.0, firstMarkerLabel, 'new', false);
     } else {
-      addMarkerAtTime((time = startTime), (label = chordLabel));
+      addMarkerAtTime(startTime, chordLabel);
     }
   });
   console.log('Markers have been successfully rendered! ✌️');
