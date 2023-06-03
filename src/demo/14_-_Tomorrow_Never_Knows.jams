@@ -2202,7 +2202,7 @@
         }
       ],
       "sandbox": {
-        "description": "The beat analysis employed the algorithm based on the paper \"Joint Beat and Downbeat Tracking with Recurrent Neural Networks\"  from the madmom library, while the chord analysis utilized CREMA  (Convolutional and Recurrent Estimators for Music Analysis) which is based on the research submission titled \"Structured training for large vocabulary chord recognition\". Lastly, the resulting chords were aligned to beat positions."
+        "description": "The beat analysis employed the algorithm based on the paper 'Joint Beat and Downbeat Tracking with Recurrent Neural Networks' from the madmom library. The chord analysis utilized CREMA (Convolutional and Recurrent Estimators for Music Analysis), which is based on the research submission titled 'Structured training for large vocabulary chord recognition'. Lastly, the resulting chords were aligned to beat positions."
       },
       "time": 0,
       "duration": null

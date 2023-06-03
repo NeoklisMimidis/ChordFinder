@@ -232,6 +232,11 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
   padding: 0 !important;
 }
 
+#annotationDescription {
+  text-align: justify;
+  white-space: pre-wrap;
+}
+
 /* --------------------------- */
 /* CLASSES FOR AUDIO I/O */
 /* --------------------------- */

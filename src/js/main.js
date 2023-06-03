@@ -34,12 +34,6 @@ dragDropHandlers('#waveform', loadAudioFile, 'drag-over');
 fileSelectHandlers('#import-audio-btn', loadAudioFile);
 fileSelectHandlers('#analyze-chords-btn', loadJAMS, '.jams');
 
-// wavesurfer ready event occur every time a new audio is loaded
-// wavesurfer.on('ready', function () {
-//   resetAudioPlayer();
-//   console.log('Waveform ready! 👍');
-// });
-
 // catching wavesurfer errors
 wavesurfer.on('error', function (error) {
   console.warn('Wavesurfer ☠️:', error);

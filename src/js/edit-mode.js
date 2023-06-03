@@ -82,11 +82,11 @@ let chord = {
 export function editModeEvents(wavesurfer) {
   /* Events (for editor) */
 
-  // // Default browsers warning when exiting without saving
-  // window.addEventListener('beforeunload', function (e) {
-  //   if (saveChordsBtn.classList.contains('disabled')) return;
-  //   e.returnValue = '';
-  // });
+  // Default browsers warning when exiting without saving
+  window.addEventListener('beforeunload', function (e) {
+    if (saveChordsBtn.classList.contains('disabled')) return;
+    e.returnValue = '';
+  });
 
   /* --------------------- */
   /* Left controls events */
@@ -318,6 +318,14 @@ export function resetEditOptions() {
 
   // removing editing color
   document.querySelector('.edit-options').classList.remove('editing-on');
+
+  // Tippy (tooltips) related functionality reset BUG why it doesnt remove?
+  editModeControls.classList.remove('pointer-events-disabled');
+  console.log(editModeControls, 'editModeControls');
+  const questionIcon = document.querySelector('.fa-circle-question');
+  const infoIcon = document.querySelector('.fa-circle-info');
+  questionIcon.classList.add('d-none');
+  infoIcon.classList.remove('d-none');
 }
 
 // - Center controls
@@ -364,12 +372,18 @@ function toggleEdit() {
 
   updateMarkerDisplayWithColorizedRegions(true);
 
-  // Tippy (tooltips) related functionality
-  editModeControls.classList.toggle('pointer-events-disabled');
   const questionIcon = document.querySelector('.fa-circle-question');
   const infoIcon = document.querySelector('.fa-circle-info');
-  questionIcon.classList.toggle('d-none');
-  infoIcon.classList.toggle('d-none');
+  // Tippy (tooltips) related functionality
+  if (editState) {
+    editModeControls.classList.remove('pointer-events-disabled');
+    questionIcon.classList.add('d-none');
+    infoIcon.classList.remove('d-none');
+  } else {
+    editModeControls.classList.add('pointer-events-disabled');
+    questionIcon.classList.remove('d-none');
+    infoIcon.classList.add('d-none');
+  }
 }
 
 // - Edit mode controls
@@ -617,7 +631,7 @@ function _extractModalPromptFields() {
   );
 
   const annotationDataSource = annotationDataSourceInput.value;
-  const annotationDescription = annotationDescriptionInput.value;
+  const annotationDescription = annotationDescriptionInput.innerHTML;
   // ..setting some default values in cases of blank text input forms
   const annotatorName =
     annotatorNameInput.value !== '' ? annotatorNameInput.value : 'Anonymous';
@@ -940,7 +954,7 @@ function _updateModalPromptForms(jamsFile) {
   }
   annotationDataSourceInput.value = dataSourceListSelected;
 
-  annotationDescriptionInput.value = selected.sandbox.description;
+  annotationDescriptionInput.innerHTML = selected.sandbox.description;
 }
 
 // -  Snap Beats & Click Track
