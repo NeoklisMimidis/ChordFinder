@@ -214,17 +214,17 @@ export function renderModalMessage(message) {
     const cancelDeleteBtn = document.getElementById('cancelDelete');
 
     confirmDeleteBtn.addEventListener('click', function () {
-      resolve(); // Resolve the promise
       confirmationModal.classList.remove('show');
       confirmationModal.style.display = 'none';
       isModalActive = false;
+      resolve(); // Resolve the promise
     });
 
     cancelDeleteBtn.addEventListener('click', function () {
-      reject(); // Reject the promise
       confirmationModal.classList.remove('show');
       confirmationModal.style.display = 'none';
       isModalActive = false;
+      reject(); // Reject the promise
     });
   });
 }

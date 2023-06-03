@@ -540,15 +540,19 @@ function saveChords() {
 function cancelEditingChords() {
   const message = `You are about to cancel editing.<br> Any unsaved changes will be <span class="text-warning">discarded.</span> <br><br><span class="text-info">Are you sure?</span> 🤷‍♂️`;
 
+  console.log('before modal render!');
   renderModalMessage(message)
     .then(() => {
       // User confirmed
       wavesurfer.clearMarkers();
       renderAnnotations(selectedAnnotationData(jamsFile));
+      console.log('cancel editing after render');
       _disableSaveChordsAndCancelEditing();
+      console.log('cancel editing after disable');
     })
     .catch(() => {
       // User canceled
+      console.log('catch cancel ');
     });
 }
 
@@ -636,8 +640,9 @@ function _disableAnnotationListAndDeleteAnnotation() {
 function _disableSaveChordsAndCancelEditing() {
   annotationList.classList.remove('disabled');
   // ONLY remove IF not first annotation
-  if (annotationList.selectedIndex !== 0)
+  if (annotationList.selectedIndex !== 0) {
     deleteAnnotationBtn.classList.remove('disabled');
+  }
 
   saveChordsBtn.classList.add('disabled');
   cancelEditingBtn.classList.add('disabled');
