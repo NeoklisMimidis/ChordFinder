@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎶 ChordFinder</title>
+    <link rel="icon" type="image/x-icon" href="./src/img/MCL_logo.png" />
+
+    <link
+      rel="stylesheet"
+      href="node_modules/@fortawesome/fontawesome-free/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="node_modules/bootstrap/dist/css/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="./src/styles/main.css" />
+
+    <script
+      type="module"
+      src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
+    ></script>
+
+    <script type="module" src="./src/js/main.js" defer></script>
+  </head>
+  <body>
+    <img
+      id="musicolab-logo"
+      src="./src/img/MCL_fullLogo.png"
+      alt="MusiColab Logo"
+    />
+
+    <div id ="audio-player-and-controls" class="container">
+      <h1 id="heading">ChordFinder</h1>
+      <center>
+        <div class="preface-audio">
+          <div >To import an audio file, either drag and drop it in the space below or use the 'Audio I/O' controls to select the file.</div>       
+        </div>     
+ 
+       
+        <div   class="edit-options d-none">
+          <div class="preface-annotation d-none">  
+            <div >Now select an annotation with the Analyze button in 'Audio I/O' controls (this process later on will be automatic by fetching a file from the MusiColab server)</div>
+          </div>     
+
+          <div id='left-edit-controls'  class="left-controls edit-controls d-none controls-gap">
+            <button id="toggle-SnapOnBeats-btn" class="no-border">
+              <i class="fa-solid fa-toggle-on fa-xl d-none"></i>
+              <i class="fa-solid fa-toggle-off fa-xl"></i>
+              <div class="control-label">Snap (beats)</div>
+            </button>
+
+            <button id="toggle-clickTrack-btn" class="no-border">
+              <i class="fa-solid fa-toggle-on fa-xl d-none"></i>
+              <i class="fa-solid fa-toggle-off fa-xl"></i>
+              <div class="control-label">Click Track</div>
+            </button>
+          </div>
+
+          <div  id='center-edit-controls' class="center-controls d-none edit-controls">
+            <select id="annotation-list" class="form-control-sm"></select>
+
+            <button class="no-border no-padding" id="delete-annotation-btn">
+              <i class="fa-solid fa-trash-can"></i>
+              <div class="control-label no-padding">Delete</div>
+            </button>
+
+            <button id="toggle-edit-btn" class="no-border ">
+              <i class="fa-solid fa-toggle-on fa-xl d-none"></i>
+              <i class="fa-solid fa-toggle-off fa-xl"></i>
+              <div class="control-label">Edit</div>
+            </button>     
+          </div>
+     
+          <div id='edit-mode-controls' class="right-controls edit-controls pointer-events-disabled">         
+              <button   class="btn-edit-mode disabled  d-none" id="edit-chord-btn">
+                <i class="fa-solid fa-pen fa-xl"></i>
+                <div class="control-label">Edit chord</div>
+              </button>
+              <button class="btn-edit-mode disabled  d-none"  id="save-chords-btn" >
+                <i class="fa-solid fa-floppy-disk fa-xl"></i>
+                <div class="control-label">Save chords</div>
+              </button>
+              <button class="btn-edit-mode disabled  d-none" id="cancel-editing-btn" >
+                <i class="fa-solid fa-xmark fa-xl"></i>
+                <div class="control-label">Cancel</div>
+              </button>     
+              
+              <div id='audio-file-name'>---</div>
+            </div>     
+
+            <div id='info-question' class="d-none">
+              <i class="fa-solid fa-circle-question  fa-xl"></i>
+              <i class="fa-solid fa-circle-info fa-xl d-none"></i>
+            </div>
+          </div>
+
+
+        <div id="main-view">
+          <div id="main-view-waveform">
+            <div id="wavetimeline"></div>
+            <div class="drag-text">Drop the audio file here!</div>
+            <div id="waveform"></div>
+
+            <div class="player-controls">
+              <div class="left-controls">                  
+                <button class=" no-border no-padding zoom-in-btn disabled">
+                  <i class="fa-solid fa-magnifying-glass-plus fa-xl"></i>
+                  <div class="control-label no-padding">Zoom In</div>
+                </button>
+                <button class=" no-border no-padding zoom-out-btn disabled">
+                  <i class="fa-solid fa-magnifying-glass-minus fa-xl"></i>
+                  <div class="control-label no-padding">Zoom Out</div>
+                </button>
+              </div>
+              <div class="center-controls controls-gap">
+                <button id="rewind-btn" class="no-border disabled">
+                  <i class="fa-solid fa-backward-step fa-lg"></i>
+                </button>
+                <button id="play-pause-btn" class="no-border disabled">             
+            
+                  <i class="fa-solid fa-play fa-2xl" style="color: #008000;"></i>
+                  <i class="fa-solid fa-pause fa-2xl d-none"></i>       
+                </button>
+                <button id="mute-unmute-btn" class="no-border disabled">
+                  <i class="fa-solid fa-volume-xmark fa-xl d-none"></i>
+                  <i class="fa-solid fa-volume-high fa-xl"></i>
+              </div>
+              <div class="right-controls">
+                </button>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value="1"
+                  title="Volume slider"
+                  class="volume-slider disabled"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div id="main-view-audio-in-out-controls">
+            <div class="audio-in-out-controls">
+              <button id="import-audio-btn" class="input-output no-border" draggable="true">
+                <i class="fa-solid fa-upload fa-xl"></i>
+                <div class="control-label">Import Audio</div>
+              </button>
+
+              <div class="item" id="item" draggable="true"></div>
+              
+              <button id="analyze-chords-btn" class="input-output no-border disabled">
+                <i class="fa-solid fa-file-audio fa-xl"></i>
+                <div class="control-label">Analyze</div>
+              </button>
+              <button id="download-chords-btn" class="input-output no-border disabled">
+                <i class="fa-solid fa-download fa-xl"></i>
+                <div class="control-label">Download</div>
+              </button>
+            </div>
+          </div>
+
+          <div id="main-view-corner"><span>Audio I/O Controls</span></div>
+        </div>
+      </center>
+    </div>
+
+    <div
+      class="modal"
+      id="show-chord-editor"
+      tabindex="-1"
+      aria-labelledby="showCordEditorLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-content bg-transparent border-0">
+        <div class="modal-body">
+          <div class="container">
+            <div id="chord-editor">    
+              <div class="row justify-content-around my-5">
+                <table id="roots" class="table table-bordered table-dark col-4">
+                  <thead>
+                    <tr>
+                      <th scope="col" class="text-center" colspan="7">Roots</th>
+                    </tr>
+                  </thead>
+                  <tbody class="Chords">
+                    <tr>
+                      <td data-modal-tooltip="La" class="root">A</td>
+                      <td data-modal-tooltip="Si" class="root">B</td>
+                      <td data-modal-tooltip="Do" class="root">C</td>
+                      <td data-modal-tooltip="Re" class="root">D</td>
+                      <td data-modal-tooltip="Mi" class="root">E</td>
+                      <td data-modal-tooltip="Fa" class="root">F</td>
+                      <td data-modal-tooltip="Sol" class="root">G</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <table
+                  id="others"
+                  class="table table-bordered table-dark col-2"
+                >
+                  <thead>
+                    <tr>
+                      <th scope="col" class="text-center" colspan="2">
+                        Others
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="Chords">
+                    <tr>
+                      <!-- prettier-ignore -->
+                      <td class="variation" id="special-characters">
+                        <text id="disable-font-label">N.C.</text>
+                      </td>
+                      <td class="variation" id="special-characters">
+                        <text id="disable-font-label">??</text>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <table
+                  id="accidentals"
+                  class="table table-bordered table-dark col-2"
+                >
+                  <thead>
+                    <tr>
+                      <th scope="col" class="text-center" colspan="3">
+                        Accidentals
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="Chords">
+                    <tr>
+                      <td data-modal-tooltip="Sharp" class="accidental">+</td>
+                      <td data-modal-tooltip="Natural" class="accidental"></td>   
+                      <!-- prettier-ignore -->
+                      <td data-modal-tooltip="Flat" class="accidental">&</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="row justify-content-center">
+                <table
+                  id="variations"
+                  class="col-8 table table-bordered table-dark"
+                >
+                  <thead>
+                    <tr>
+                      <th scope="col" class="text-center" colspan="17">
+                        Variations
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="Chords">
+                    <tr>
+                      <th scope="col" class="text-center small p-1" colspan="4">
+                        Major
+                      </th>
+                      <th scope="col" class="text-center small p-1" colspan="7">
+                        Minor
+                      </th>
+                      <th scope="col" class="text-center small p-1" colspan="6">
+                        Augmented, Diminished & Half Diminished
+                      </th>
+                    </tr>
+                    <tr>
+                      <!-- prettier-ignore -->
+                      <td class="variation" id="disable-font-table">(M)</td>     
+                      <td class="variation">c</td>
+                      <td class="variation">d</td>
+                      <td class="variation">e</td>
+
+                      <td class="variation">a</td>
+                      <td class="variation">b</td>
+                      <td class="variation">f</td>
+                      <td class="variation">h</td>
+                      <td class="variation">g</td>
+                      <td class="variation">i</td>
+                      <td class="variation">3</td>
+
+                      <td class="variation">@</td>
+
+                      <td class="variation">&gt;</td>
+                      <td class="variation">8</td>
+                      <td class="variation">W</td>
+                      <td class="variation">X</td>
+                      <td class="variation">Y</td>
+                    </tr>
+
+                    <tr>
+                      <th scope="col" class="text-center small p-1" colspan="4">
+                        Dominant
+                      </th>
+
+                      <th scope="col" class="text-center small p-1" colspan="7">
+                        Add chords
+                      </th>
+
+                      <th scope="col" class="text-center small p-1" colspan="6">
+                        Suspended
+                      </th>
+                    </tr>
+                    <tr>
+                      <td class="variation">7</td>
+                      <td class="variation">9</td>
+                      <td class="variation">Q</td>
+                      <td class="variation">U</td>
+
+                      <td class="variation">6</td>
+                      <td class="variation">k</td>
+                      <td class="variation">=</td>
+
+                      <td class="variation">j</td>
+                      <td class="variation">R</td>
+                      <td class="variation">Z</td>
+                      <td class="variation">%</td>
+
+                      <td class="variation">
+                        4<text id="disable-font-label">2</text>
+                      </td>
+                      <td class="variation">
+                        4<text id="disable-font-label">4</text>
+                      </td>
+                      <td class="variation">H</td>
+                      <td class="variation">[</td>
+                      <td class="variation">]</td>
+                      <td class="variation">&lt;</td>
+                    </tr>
+                    <tr></tr>
+
+                    <tr></tr>
+                    <tr>
+                      <th scope="col" colspan="1" rowspan="5"></th>
+
+                      <th
+                        scope="col"
+                        class="text-center small p-1"
+                        colspan="16"
+                      >
+                        Dominant Altered Sevenths Chords
+                      </th>
+                    </tr>
+                    <tr>
+                      <td class="variation">?</td>
+                      <td class="variation">p</td>
+                      <td class="variation">q</td>
+                      <td class="variation">L</td>
+                      <td class="variation">J</td>
+                      <td class="variation">O</td>
+                      <td class="variation">M</td>
+                      <td class="variation">S</td>
+                      <td class="variation">s</td>
+                      <td class="variation">K</td>
+
+                      <td class="variation">t</td>
+                      <td class="variation">N</td>
+                      <td class="variation">P</td>
+
+                      <td class="variation">I</td>
+                      <td class="variation">0</td>
+                      <td class="variation">m</td>
+                    </tr>
+                    <tr></tr>
+
+                    <tr>
+                      <th scope="col" class="text-center small p-1" colspan="2">
+                        Power
+                      </th>
+
+                      <th scope="col" class="text-center small p-1" colspan="7">
+                        Altered Chords
+                      </th>
+
+                      <th scope="col" class="text-center small p-1" colspan="7">
+                        Dominant Altered Chords
+                      </th>
+                    </tr>
+                    <tr>
+                      <td class="variation" colspan="2">5</td>
+
+                      <td class="variation">V</td>
+                      <td class="variation">v</td>
+                      <td class="variation">w</td>
+
+                      <td class="variation">1</td>
+                      <td class="variation">z</td>
+                      <td class="variation">x</td>
+                      <td class="variation">y</td>
+
+                      <td class="variation">T</td>
+                      <td class="variation">n</td>
+                      <td class="variation">r</td>
+                      <td class="variation">2</td>
+                      <td class="variation">u</td>
+                      <td class="variation">o</td>
+                      <td class="variation">l</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>   
+
+              <div class="d-flex justify-content-end">
+                <button
+                  id="cancel-btn"
+                  class="btn btn-light btn-lg mx-3"
+                  data-dismiss="modal"
+                >
+                  Cancel
+                </button>
+                <button
+                  id="apply-btn"
+                  class="btn btn-primary btn-lg"
+                  data-dismiss="modal"
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content" style="background-color: rgb(250, 250, 249)">
+          <div class="modal-body">
+            <p id="modalMessage"></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="confirmDelete">
+              Yes
+            </button>
+            <button type="button" class="btn btn-secondary" id="cancelDelete">
+              No
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="modalPrompt" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content" style="background-color: rgb(232, 228, 228)">
+          <div class="modal-header">
+            <h5 class="modal-title">Save editing?</h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p id="modalPromptMessage">abc</p>
+            <form id="promptForm">
+              <div class="form-group">
+                <div class="row">
+                  <div class="col-sm-6">
+                    <label for="annotatorName">Annotator Name:</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="annotatorName"
+                      placeholder="Enter annotator name"
+                    />
+                  </div>
+                  <div class="col-sm-6">
+                    <label for="annotationDataSource"
+                      >Annotation Data Source:</label
+                    >
+                    <select class="form-control" id="annotationDataSource">                
+                      <option value="user">User</option>
+                      <option value="collaborative">Collaborative</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="annotationDescription"
+                  >Annotation Description:</label
+                >
+                <!-- prettier-ignore -->
+                <textarea
+                  class="form-control"
+                  id="annotationDescription"
+                  placeholder="Enter annotation description"
+                  rows="5"
+                ></textarea
+                >
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="savePrompt">
+              Save
+            </button>
+            <button type="button" class="btn btn-primary" id="replacePrompt">
+              Replace
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
