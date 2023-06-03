@@ -21,7 +21,6 @@ import {
 import { createTippySingleton } from './components/tooltips.js';
 import { variations, accidentals } from './components/mappings.js';
 import {
-  renderModalMessage,
   renderModalPrompt,
   areObjectsEqual,
   downloadJAMS,
@@ -566,30 +565,27 @@ export function renderModalMessage(message) {
     const modalMessage = document.getElementById('modalMessage');
     modalMessage.innerHTML = message;
 
-    console.log('2');
-    confirmationModal.classList.add('show');
-    confirmationModal.style.display = 'block';
-
     console.log(3);
     const confirmDeleteBtn = document.getElementById('confirmDelete');
     const cancelDeleteBtn = document.getElementById('cancelDelete');
 
-    console.log('4');
     confirmDeleteBtn.addEventListener('click', function () {
-      console.log(5);
+      resolve(); // Resolve the promise
       confirmationModal.classList.remove('show');
       confirmationModal.style.display = 'none';
       isModalActive = false;
-      resolve(); // Resolve the promise
     });
 
     cancelDeleteBtn.addEventListener('click', function () {
-      console.log(6);
+      reject(); // Reject the promise
       confirmationModal.classList.remove('show');
       confirmationModal.style.display = 'none';
       isModalActive = false;
-      reject(); // Reject the promise
     });
+
+    // Display the modal after attaching the event listeners
+    confirmationModal.classList.add('show');
+    confirmationModal.style.display = 'block';
   });
 }
 
