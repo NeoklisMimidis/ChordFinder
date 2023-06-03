@@ -198,6 +198,7 @@ export function areObjectsEqual(obj1, obj2) {
   return true;
 }
 
+/*
 export function renderModalMessage(message) {
   return new Promise((resolve, reject) => {
     // Set the flag to indicate that the modal is active
@@ -234,6 +235,7 @@ export function renderModalMessage(message) {
     });
   });
 }
+*/
 
 export function renderModalPrompt(message, jamsFile) {
   return new Promise((resolve, reject) => {

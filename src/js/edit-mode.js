@@ -556,6 +556,43 @@ function cancelEditingChords() {
     });
 }
 
+export function renderModalMessage(message) {
+  return new Promise((resolve, reject) => {
+    // Set the flag to indicate that the modal is active
+    isModalActive = true;
+
+    console.log('1');
+    const confirmationModal = document.getElementById('confirmationModal');
+    const modalMessage = document.getElementById('modalMessage');
+    modalMessage.innerHTML = message;
+
+    console.log('2');
+    confirmationModal.classList.add('show');
+    confirmationModal.style.display = 'block';
+
+    console.log(3);
+    const confirmDeleteBtn = document.getElementById('confirmDelete');
+    const cancelDeleteBtn = document.getElementById('cancelDelete');
+
+    console.log('4');
+    confirmDeleteBtn.addEventListener('click', function () {
+      console.log(5);
+      confirmationModal.classList.remove('show');
+      confirmationModal.style.display = 'none';
+      isModalActive = false;
+      resolve(); // Resolve the promise
+    });
+
+    cancelDeleteBtn.addEventListener('click', function () {
+      console.log(6);
+      confirmationModal.classList.remove('show');
+      confirmationModal.style.display = 'none';
+      isModalActive = false;
+      reject(); // Reject the promise
+    });
+  });
+}
+
 function _createNewAnnotation() {
   const [annotatorName, annotationDataSource, annotationDescription] =
     _extractModalPromptFields();
