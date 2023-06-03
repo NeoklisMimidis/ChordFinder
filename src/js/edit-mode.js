@@ -21,7 +21,6 @@ import {
 import { createTippySingleton } from './components/tooltips.js';
 import { variations, accidentals } from './components/mappings.js';
 import {
-  renderModalPrompt,
   areObjectsEqual,
   downloadJAMS,
   createToggle,
@@ -555,38 +554,6 @@ function cancelEditingChords() {
     });
 }
 
-function renderModalMessage(message) {
-  return new Promise((resolve, reject) => {
-    // Set the flag to indicate that the modal is active
-    isModalActive = true;
-
-    const confirmationModal = document.getElementById('confirmationModal');
-    const modalMessage = document.getElementById('modalMessage');
-    modalMessage.innerHTML = message;
-
-    const confirmDeleteBtn = document.getElementById('confirmDelete');
-    const cancelDeleteBtn = document.getElementById('cancelDelete');
-
-    confirmDeleteBtn.addEventListener('click', function () {
-      resolve(); // Resolve the promise
-      confirmationModal.classList.remove('show');
-      confirmationModal.style.display = 'none';
-      isModalActive = false;
-    });
-
-    cancelDeleteBtn.addEventListener('click', function () {
-      reject(); // Reject the promise
-      confirmationModal.classList.remove('show');
-      confirmationModal.style.display = 'none';
-      isModalActive = false;
-    });
-
-    // Display the modal after attaching the event listeners
-    confirmationModal.classList.add('show');
-    confirmationModal.style.display = 'block';
-  });
-}
-
 function _createNewAnnotation() {
   const [annotatorName, annotationDataSource, annotationDescription] =
     _extractModalPromptFields();
@@ -875,6 +842,105 @@ function _mapChordSymbolToText(encodedChord) {
   const mirLabel = `${foundRootNote}${foundAccidental}${column}${foundShorthand}`;
 
   return mirLabel;
+}
+
+export function renderModalMessage(message) {
+  return new Promise((resolve, reject) => {
+    // Set the flag to indicate that the modal is active
+    isModalActive = true;
+
+    const confirmationModal = document.getElementById('confirmationModal');
+    const modalMessage = document.getElementById('modalMessage');
+    modalMessage.innerHTML = message;
+
+    const confirmDeleteBtn = document.getElementById('confirmDelete');
+    const cancelDeleteBtn = document.getElementById('cancelDelete');
+
+    confirmDeleteBtn.addEventListener('click', function () {
+      resolve(); // Resolve the promise
+      confirmationModal.classList.remove('show');
+      confirmationModal.style.display = 'none';
+      isModalActive = false;
+    });
+
+    cancelDeleteBtn.addEventListener('click', function () {
+      reject(); // Reject the promise
+      confirmationModal.classList.remove('show');
+      confirmationModal.style.display = 'none';
+      isModalActive = false;
+    });
+
+    // Display the modal after attaching the event listeners
+    confirmationModal.classList.add('show');
+    confirmationModal.style.display = 'block';
+  });
+}
+
+function renderModalPrompt(message, jamsFile) {
+  return new Promise((resolve, reject) => {
+    // Set the flag to indicate that the modal is active
+    isModalActive = true;
+
+    const modalPrompt = document.getElementById('modalPrompt');
+    const modalPromptMessage = modalPrompt.querySelector('#modalPromptMessage');
+
+    modalPromptMessage.innerHTML = message;
+    _updateModalPromptForms(jamsFile);
+    modalPrompt.classList.add('show');
+    modalPrompt.style.display = 'block';
+
+    const savePromptBtn = document.getElementById('savePrompt');
+    const replacePromptBtn = document.getElementById('replacePrompt');
+    const closeModalBtn = document.querySelector('.modal-header .close');
+
+    savePromptBtn.addEventListener('click', function () {
+      resolve('save'); // Resolve the promise with the value 'save'
+      modalPrompt.classList.remove('show');
+      modalPrompt.style.display = 'none';
+      isModalActive = false;
+    });
+
+    replacePromptBtn.addEventListener('click', function () {
+      resolve('replace'); // Resolve the promise with the value 'replace'
+      modalPrompt.classList.remove('show');
+      modalPrompt.style.display = 'none';
+      isModalActive = false;
+    });
+
+    closeModalBtn.addEventListener('click', function () {
+      reject(); // Reject the promise
+      modalPrompt.classList.remove('show');
+      modalPrompt.style.display = 'none';
+      isModalActive = false;
+    });
+  });
+}
+
+function _updateModalPromptForms(jamsFile) {
+  // Updating form fields with respective
+  const annotatorNameInput = document.getElementById('annotatorName');
+  const annotationDataSourceInput = document.getElementById(
+    'annotationDataSource'
+  );
+  const annotationDescriptionInput = document.getElementById(
+    'annotationDescription'
+  );
+  const annotationList = document.getElementById('annotation-list');
+
+  // Currently selected/ displayed JAMS annotation
+  const selected = jamsFile.annotations[annotationList.selectedIndex];
+
+  annotatorNameInput.value = selected.annotation_metadata.curator.name;
+
+  let dataSourceListSelected;
+  if (selected.annotation_metadata.data_source === 'program') {
+    dataSourceListSelected = 'user';
+  } else {
+    dataSourceListSelected = selected.annotation_metadata.data_source;
+  }
+  annotationDataSourceInput.value = dataSourceListSelected;
+
+  annotationDescriptionInput.value = selected.sandbox.description;
 }
 
 // -  Snap Beats & Click Track

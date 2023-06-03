@@ -10,41 +10,8 @@ import minimapPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.minimap.min.js';
 
 // Created wavesurfer instance from main.js
 import { wavesurfer } from './main.js';
-// import { isModalActive } from './edit-mode.js';
-// import { renderModalMessage, loadFile } from './components/utilities.js';
+import { renderModalMessage, isModalActive } from './edit-mode.js';
 import { loadFile } from './components/utilities.js';
-
-function renderModalMessage(message) {
-  return new Promise((resolve, reject) => {
-    // Set the flag to indicate that the modal is active
-    isModalActive = true;
-
-    const confirmationModal = document.getElementById('confirmationModal');
-    const modalMessage = document.getElementById('modalMessage');
-    modalMessage.innerHTML = message;
-
-    const confirmDeleteBtn = document.getElementById('confirmDelete');
-    const cancelDeleteBtn = document.getElementById('cancelDelete');
-
-    confirmDeleteBtn.addEventListener('click', function () {
-      resolve(); // Resolve the promise
-      confirmationModal.classList.remove('show');
-      confirmationModal.style.display = 'none';
-      isModalActive = false;
-    });
-
-    cancelDeleteBtn.addEventListener('click', function () {
-      reject(); // Reject the promise
-      confirmationModal.classList.remove('show');
-      confirmationModal.style.display = 'none';
-      isModalActive = false;
-    });
-
-    // Display the modal after attaching the event listeners
-    confirmationModal.classList.add('show');
-    confirmationModal.style.display = 'block';
-  });
-}
 
 /* Elements */
 const waveform = document.querySelector('#waveform');
