@@ -11,7 +11,6 @@ import minimapPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.minimap.min.js';
 // Created wavesurfer instance from main.js
 import { wavesurfer } from './main.js';
 import { isModalActive } from './edit-mode.js';
-import { updateMarkerDisplayWithColorizedRegions } from './render-annotations.js';
 import { renderModalMessage, loadFile } from './components/utilities.js';
 
 /* Elements */
@@ -146,13 +145,6 @@ export function audioPlayerEvents(wavesurfer) {
     pauseBtn.classList.add('d-none');
     wavesurfer.stop();
     wavesurfer.seekAndCenter(0);
-
-    // This is a gimmick check to see if the annotation is loaded (bcs then info icon is displayed)
-    const info = document
-      .querySelector('#info-question')
-      .classList.contains('d-none');
-    if (info) return;
-    // updateMarkerDisplayWithColorizedRegions();
   });
 
   // play/pause with space button if playback started
@@ -274,6 +266,11 @@ function playPause() {
 }
 
 function _initElementsState() {
+  // destroy previous tippy singleton instance
+  if (wavesurfer.markers.markers[0]) {
+    wavesurfer.markers.markers[0].el.singleton.destroy();
+  }
+
   // Reset markers,regions & controls
   wavesurfer.clearMarkers();
   wavesurfer.clearRegions();
@@ -288,6 +285,15 @@ function _initElementsState() {
   document
     .querySelector('.edit-options .center-controls')
     .classList.add('d-none');
+  const editModeControls = document.querySelector('#edit-mode-controls');
+  editModeControls.querySelectorAll('.btn-edit-mode').forEach(button => {
+    button.classList.add('d-none');
+  });
+  const audioFileName = document.querySelector('#audio-file-name');
+  audioFileName.classList.remove('d-none');
+  // removing editing color
+  document.querySelector('.edit-options').classList.remove('editing-on');
+
   document.querySelector('#info-question').classList.add('d-none');
 
   // Audio I/O
@@ -312,16 +318,6 @@ function _initElementsState() {
 function _playPauseToggleStates() {
   playBtn.classList.toggle('d-none');
   pauseBtn.classList.toggle('d-none');
-
-  // This is a gimmick check to see if the annotation is loaded (bcs then info icon is displayed)
-  const info = document
-    .querySelector('#info-question')
-    .classList.contains('d-none');
-  if (info) return;
-  // ..and audio is playing
-  console.log('what??');
-  if (playBtn.classList.contains('d-none')) return;
-  // updateMarkerDisplayWithColorizedRegions();
 }
 
 function _spaceKeyPlayPause(event) {

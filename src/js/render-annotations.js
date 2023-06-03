@@ -75,8 +75,6 @@ export function createAnnotationsList(jamsFile) {
       const option = document.createElement('option');
 
       if (annotation.annotation_metadata.data_source === 'program') {
-        annotationData = annotation['data'];
-
         option.text = '(automatic analysis)';
         // tooltip is the same as annotation_tools TODO
       } else if (annotation.annotation_metadata.data_source === 'user') {

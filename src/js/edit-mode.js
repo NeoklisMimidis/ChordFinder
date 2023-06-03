@@ -83,11 +83,11 @@ let chord = {
 export function editModeEvents(wavesurfer) {
   /* Events (for editor) */
 
-  // Default browsers warning when exiting without saving
-  window.addEventListener('beforeunload', function (e) {
-    if (saveChordsBtn.classList.contains('disabled')) return;
-    e.returnValue = '';
-  });
+  // // Default browsers warning when exiting without saving
+  // window.addEventListener('beforeunload', function (e) {
+  //   if (saveChordsBtn.classList.contains('disabled')) return;
+  //   e.returnValue = '';
+  // });
 
   /* --------------------- */
   /* Left controls events */
@@ -167,6 +167,18 @@ export function editModeEvents(wavesurfer) {
   wavesurfer.on('region-out', region => {
     region.update((region.color = prevColor));
   });
+
+  wavesurfer.on('pause', () => {
+    // Only in the case where annotations exist
+    if (wavesurfer.markers.markers[0]) {
+      updateMarkerDisplayWithColorizedRegions();
+    }
+  });
+
+  // // This is a gimmick check to see if the annotation is loaded
+  // if (isAnnotationLoaded) {
+  //   updateMarkerDisplayWithColorizedRegions();
+  // }
 
   /* ---------------------- */
   /* Center controls events */
@@ -617,7 +629,6 @@ function _disableAnnotationListAndDeleteAnnotation() {
   saveChordsBtn.classList.remove('disabled');
   cancelEditingBtn.classList.remove('disabled');
 
-  document.querySelector('.preface').classList.add('editing-on');
   document.querySelector('.edit-options').classList.add('editing-on');
 }
 
@@ -630,7 +641,6 @@ function _disableSaveChordsAndCancelEditing() {
   saveChordsBtn.classList.add('disabled');
   cancelEditingBtn.classList.add('disabled');
 
-  document.querySelector('.preface').classList.remove('editing-on');
   document.querySelector('.edit-options').classList.remove('editing-on');
 }
 
