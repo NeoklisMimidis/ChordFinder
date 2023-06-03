@@ -555,17 +555,15 @@ function cancelEditingChords() {
     });
 }
 
-export function renderModalMessage(message) {
+function renderModalMessage(message) {
   return new Promise((resolve, reject) => {
     // Set the flag to indicate that the modal is active
     isModalActive = true;
 
-    console.log('1');
     const confirmationModal = document.getElementById('confirmationModal');
     const modalMessage = document.getElementById('modalMessage');
     modalMessage.innerHTML = message;
 
-    console.log(3);
     const confirmDeleteBtn = document.getElementById('confirmDelete');
     const cancelDeleteBtn = document.getElementById('cancelDelete');
 
