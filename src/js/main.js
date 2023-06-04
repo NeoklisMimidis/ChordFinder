@@ -67,5 +67,5 @@ wavesurfer.on('ready', function () {
 import audioFileURL from 'url:../../demo_files/test.mp3';
 import annotationFile from 'url:../../demo_files/test.jams';
 
-loadAudioFile(audioFileURL);
+// loadAudioFile(audioFileURL);
 // loadJAMS(annotationFile);
