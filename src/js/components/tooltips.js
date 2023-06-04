@@ -11,7 +11,7 @@ import 'tippy.js/dist/backdrop.css';
 import 'tippy.js/animations/shift-away.css';
 
 const leftEditControlsContent = `'Snap (beats)' ensures precise cursor placement on analyzed beat positions. In Edit mode, Snap (beats) is disabled to facilitate editing. 'Click track' generates audible beats, aiding rhythm comprehension and beat verification. While activated, beat duration is visually highlighted.`;
-tippy('#left-edit-controls', {
+tippy('#left-toolbar-controls', {
   content: leftEditControlsContent,
   delay: [1500, 250],
   hideOnClick: false,
@@ -23,10 +23,14 @@ tippy('#left-edit-controls', {
   plugins: [animateFill],
 });
 
-const centerEditControlsContent =
-  'The annotation list allows you to select which annotations are displayed, including the ability to create new annotations during editing. Deleting annotations is possible, except for the original (automatic analysis). Lastly, the Edit toggle enables switching to Edit mode for modifying the selected annotation';
-tippy('#center-edit-controls', {
+const centerEditControlsContent = `The annotation list allows you to select which annotations are displayed, including the ability to create new annotations during editing. Deleting annotations is possible, except for the original (automatic analysis). Lastly, By utilizing the 'Edit' toggle, you can access Edit mode and gain access to a set of tools specifically designed for modifying the selected annotations.`;
+tippy('#center-toolbar-controls', {
+  // content: {
+  //   text: centerEditControlsContent,
+  //   width: '2000px', // Adjust the width value as needed
+  // },
   content: centerEditControlsContent,
+  inlinePositioning: true,
   delay: [1500, 250],
   hideOnClick: false,
   theme: 'translucent',
@@ -37,18 +41,19 @@ tippy('#center-edit-controls', {
   interactive: true,
   animateFill: true,
   plugins: [animateFill],
+  maxWidth: '500px',
 });
 
 const editModeControlsContent =
   'Edit Mode Chord allows modifying the selected chord, Save Chord stores changes made, and Cancel reverts back without altering. Customize and manage your chord edits with ease.';
-tippy('#edit-mode-controls', {
+tippy('#right-toolbar-controls', {
   content: editModeControlsContent,
   delay: [1500, 350],
   hideOnClick: false,
   theme: 'translucent',
   // theme: 'light-border',
   // placement: 'right-start',
-  placement: 'top',
+  placement: 'top-end',
   arrow: true,
   interactive: true,
   animateFill: true,
@@ -70,7 +75,7 @@ tippy('.fa-circle-question', {
 });
 
 const infoContent =
-  'In Edit mode, you gain extra functionality. Easily drag markers (representing beats and chords) to fine-tune beat timing. Right-click to remove a selected marker, or simply double-click on the waveform to add a new marker at the desired position. Take control and enhance the accuracy of the automatic analysis effortlessly.';
+  'In Edit mode, you gain extra functionality. Easily drag markers (representing beats and chords) to fine-tune beat timing. Right-click to remove the selected marker, or simply double-click on the waveform to add a new marker at the desired position. Take control and enhance the accuracy of the automatic analysis effortlessly.';
 tippy('.fa-circle-info', {
   content: infoContent,
   delay: [500, 100],
@@ -83,9 +88,9 @@ tippy('.fa-circle-info', {
   plugins: [animateFill],
 });
 
-const audioInputOutputControlsContent = `Open the side panel to access various actions. Import audio by selecting a file through the 'Import audio' button or by dragging and dropping it onto the waveform. Initiate a new analysis using the 'Analyze' button. Finally, download all modified annotations, including the original annotation, for the corresponding file.`;
-tippy('#main-view-corner', {
-  content: audioInputOutputControlsContent,
+const audioSidebarText = `Open the side panel to access various actions. Import audio by selecting a file through the 'Import audio' button or by dragging and dropping it onto the waveform. Initiate a new analysis using the 'Analyze' button. Finally, download all modified annotations, including the original annotation, for the corresponding file.`;
+tippy('#audio-sidebar-text', {
+  content: audioSidebarText,
   delay: [800, 250],
   hideOnClick: false,
   theme: 'translucent',

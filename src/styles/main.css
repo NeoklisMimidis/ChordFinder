@@ -1,9 +1,6 @@
 body {
   height: 100vh;
   background: linear-gradient(to bottom, #8ec3e9, #c9dee9);
-  /* display: flex; */
-  /* align-items: center; */
-  /* background: linear-gradient(to top left, #28b487, #7dd56f); */
   user-select: none;
 }
 
@@ -14,7 +11,6 @@ body {
   left: 14%;
   width: 24%;
   transform: translate(-50%, -50%);
-  /* user-select: none; */
 }
 
 h1 {
@@ -23,16 +19,152 @@ h1 {
   padding: 2.5rem 0 1.5rem;
   text-align: center;
   color: transparent;
-  /* user-select: none; */
   /* background: linear-gradient(to top left, #b5dac5, #eb850d); */
   background: linear-gradient(to bottom, white, #e9a353);
   background-clip: text;
+}
+
+/* --------------------- */
+/* SELECTORS FOR TOOLBAR */
+/* --------------------- */
+#toolbar,
+.preface-audio-help,
+.preface-annotation-help {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  align-items: center;
+  padding: 4.5px;
+  background-color: rgba(250, 242, 208, 0.7);
+  user-select: none;
+  border: 1.5px solid black;
+  border-radius: 10px;
+  transform: translate(-3.5%);
+  width: 85%;
+  box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
+
+  font-family: Verdana, Manrope, Great Vibes, sans-serif;
+}
+
+.preface-annotation-help {
+  width: 65% !important;
+  transform: translate(0%) !important;
+}
+
+/* class for all 3, left + center + right toolbar-controls  */
+.toolbar-controls {
+  background-color: rgba(250, 242, 208, 0.4);
+  padding: 0.5rem 0.5rem;
+  border: 1.5px solid black;
+  border-radius: 15px;
+}
+
+#toolbar > * {
+  display: flex;
+  align-items: center;
+}
+
+#left-toolbar-controls {
+  flex: 0.1;
+  justify-content: center;
+}
+
+#annotation-list {
+  font-size: 15px;
+}
+
+#delete-annotation-btn:hover {
+  animation: fa-fade 1s infinite;
+}
+
+#right-toolbar-controls {
+  flex: 0.7;
+  justify-content: center;
+}
+
+#audio-file-name {
+  white-space: nowrap;
+}
+
+#info-question {
+  flex: 0.05;
+  padding-right: 10px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#info-question:hover {
+  color: orangered;
+}
+
+.editing-on {
+  /* background-color: rgba(128, 0, 128, 0.7); */
+  background-color: rgba(255, 165, 0, 0.7);
+}
+/* On modal save annotation description */
+#annotationDescription {
+  text-align: justify;
+  white-space: pre-wrap;
+}
+
+#toolbar .no-border:hover {
+  color: tomato;
+}
+
+.btn-edit-mode {
+  padding: 0;
 }
 
 /* -------------------------- */
 /* Wavesurfer generates several canvas elements, each containing only a segment of the audio waveform, rather than a single canvas with the complete duration. The maxCanvasWidth Wavesurfer Option allows for further customization of this feature using JavaScript. 
 Furthermore, Wavesurfer generates two parallel canvas elements to display two distinct waveforms: the basic waveform with z-index 2 (indicated as <canvas></canvas> element and the progressed waveform with z-index 3 indicated as <wave></wave>.
 /* -------------------------- */
+
+/* .left-controls {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.center-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.right-controls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+} */
+
+/* ////// */
+#audio-player-and-controls {
+  max-width: 1300px;
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+  transform: translate(3%);
+}
+
+#audio-player {
+  display: flex;
+  /* overflow: hidden; */
+  /* flex-direction: column; */
+  justify-content: space-between;
+
+  /* flex-wrap: wrap; */
+  /* align-content: flex-start; */
+  /* gap: 1em; */
+}
+
+#audio-container {
+  /* display: block; */
+  width: 150%;
+  z-index: 20;
+}
 
 #wavetimeline {
   width: 100%;
@@ -56,6 +188,37 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
   opacity: 1;
 }
 
+.drag-over {
+  /* background-color: #f1f1f1; */
+  /* animation: fa-bounce 1s infinite; */
+  animation: fa-fade 1s infinite;
+  border: dashed 2.5px red;
+  /* display: block; */
+}
+
+.drag-text {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 3vw;
+  /* position: absolute; */
+  /* position: relative; */
+  color: black;
+  z-index: 20;
+  /* left: 32%; */
+  /* top: 28%; */
+  /* display: none; */
+  /* display: inline-block !important; */
+}
+
+/* .drag-text {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 3vw;
+  position: absolute;
+  color: black;
+  left: 32%;
+  top: 28%;
+  display: none;
+} */
+
 #waveform > minimap {
   /* display: none !important; */
   background-color: rgba(161, 212, 240, 0.35);
@@ -70,6 +233,31 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 /* MARKERS */
 .wavesurfer-marker {
   z-index: 4 !important;
+}
+
+.span-chord-text {
+  font-size: 140% !important;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  height: 2.2rem;
+  transform: translateY(12px);
+  margin-top: -12px;
+  background-color: rgba(211, 211, 211, 0.7);
+  color: rgba(13, 106, 182, 0.7);
+  border-radius: 10px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.span-chord-symbol {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  height: 2rem;
+  transform: translateY(12px);
+  margin-top: -12px;
+  background-color: rgba(211, 211, 211, 0.7);
+  color: rgba(13, 106, 182, 0.8);
+  border-radius: 10px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 /* --------------------------- */
@@ -89,115 +277,9 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
-.edit-options,
-.preface-audio,
-.preface-annotation {
-  display: flex;
-  /* margin-top: auto; */
-
-  justify-content: space-between;
-  align-items: center;
-  padding: 3.5px;
-  /* background-color: rgba(0, 255, 229, 0.02); */
-  background-color: rgba(250, 242, 208, 0.7);
-  user-select: none;
-  border: 1.5px solid black;
-  border-radius: 10px;
-  transform: translate(-2.5%);
-  width: 85%;
-  /* border-bottom-left-radius: 0; */
-  /* border-bottom-right-radius: 0; */
-  box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
-
-  font-family: 'Great Vibes', cursive;
-}
-
-.preface-annotation {
-  width: 65% !important;
-  transform: translate(0%) !important;
-}
-
-.editing-on {
-  /* background-color: rgba(128, 0, 128, 0.7); */
-  background-color: rgba(255, 165, 0, 0.7);
-}
-
-.edit-controls {
-  background-color: rgba(250, 242, 208, 0.4);
-  padding-right: 8px;
-  padding-left: 8px;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  border: 1.5px solid black;
-  border-radius: 15px;
-}
-
-#info-question {
-  padding-right: 10px;
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
-
-#info-question:hover {
-  color: orangered;
-}
-
-#edit-mode-controls {
-  /* display: flex; */
-  font-size: 90%;
-  width: 30%;
-  justify-content: center;
-}
-
-.pointer-events-disabled {
-  pointer-events: none;
-}
-.controls-gap {
-  gap: 4%;
-}
-
-.no-opacity {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.left-controls {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-.center-controls {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.right-controls {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-}
-
 .player-controls .center-controls {
   margin-left: 5%;
   gap: 30%;
-}
-
-.no-border {
-  border: none;
-  background-color: transparent;
-}
-
-.edit-options .no-border:hover {
-  color: tomato;
-}
-
-.player-controls .no-border:hover {
-  color: rgba(255, 255, 255, 0.6);
-}
-.audio-in-out-controls .no-border:hover {
-  color: rgba(255, 255, 255, 0.6);
 }
 
 .fa-play:hover {
@@ -205,142 +287,104 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
   animation: fa-fade 1s infinite;
 }
 
-/* disable pointer events for disabled buttons */
-.no-border:disabled {
+/* --------------------------- */
+/* CLASSES FOR AUDIO I/O */
+/* --------------------------- */
+.audio-sidebar {
+  display: flex;
+  margin-top: 10px;
+  flex-direction: column;
+  background-color: rgba(0, 191, 255, 0.2);
+  border: 1.5px solid black;
+  border-left: 0px solid black;
+  border-top: 1.5px solid black;
+  border-bottom: 1.5px solid black;
+  box-shadow: 0 2px 0px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease-out;
+}
+
+#audio-sidebar-controls {
+  width: 10%;
+  transform: translate(-100%);
+  opacity: 0;
+  justify-content: space-evenly;
+}
+
+#audio-sidebar-text {
+  writing-mode: vertical-rl;
+  font-weight: bold;
+  font-size: 20px;
+  width: 5%;
+  transform: translate(-230%);
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+#audio-sidebar-text :hover {
+  color: rgba(255, 194, 71, 0.8);
+}
+
+/* class to reverl elements back to their un-transformed position */
+.shown {
+  opacity: 1 !important;
+  transform: translate(0) !important;
+}
+
+/* --------------------- */
+/* GENERAL USAGE CLASSES */
+/* --------------------- */
+/* gimmick class to hide marker-label span elements without using display:none; */
+.invisible-up {
+  margin-top: -100em;
+}
+
+.hidden {
+  display: none;
+}
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pointer-events-disabled {
+  pointer-events: none !important;
+}
+
+.no-opacity {
+  opacity: 0;
   pointer-events: none;
 }
 
-/* .fa-solid:hover {
-  animation: fa-fade 1s infinite;
-} */
+.no-border {
+  border: none;
+  background-color: transparent;
+  border: 1.5px transparent;
+}
 
-#delete-annotation-btn:hover {
-  animation: fa-fade 1s infinite;
+.no-border:hover {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* disable pointer events for no-border disabled buttons */
+.no-border:disabled {
+  pointer-events: none;
 }
 
 .control-label {
   font-size: x-small;
   font-weight: bold;
-  width: 4rem;
-}
-
-#annotation-list {
-  font-size: 15px;
+  width: 4.8rem;
 }
 
 .no-padding {
   padding: 0 !important;
 }
 
-#annotationDescription {
-  text-align: justify;
-  white-space: pre-wrap;
-}
-
-/* --------------------------- */
-/* CLASSES FOR AUDIO I/O */
-/* --------------------------- */
-
-.drag-over {
-  /* background-color: #f1f1f1; */
-  /* animation: fa-bounce 1s infinite; */
+/* .fa-solid:hover {
   animation: fa-fade 1s infinite;
-  border: dashed 2.5px red;
-}
-
-.drag-text {
-  font-family: Helvetica, Arial, sans-serif;
-  font-size: 3vw;
-  position: absolute;
-  color: black;
-  left: 32%;
-  top: 28%;
-  display: none;
-}
-
-#main-view {
-  display: flex;
-  overflow: hidden;
-}
-
-#main-view-waveform {
-  display: block;
-  width: 350%;
-  z-index: 20;
-}
-
-#main-view-audio-in-out-controls {
-  display: grid-auto-rows;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 10px;
-  background-color: rgba(0, 191, 255, 0.2);
-  user-select: none;
-  border-top: 1.5px solid black;
-  border-bottom: 1.5px solid black;
-  box-shadow: 0 2px 0px rgba(0, 0, 0, 0.3);
-
-  width: 60px;
-  transform: translate(-100%);
-  transition: transform 0.3s ease-out;
-  opacity: 0;
-}
-
-#main-view-corner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 10px;
-  flex-direction: column;
-  background-color: rgba(0, 191, 255, 0.2);
-
-  border: 1.5px solid black;
-  border-left: 0px;
-  border-top-right-radius: 10px;
-  border-bottom-right-radius: 10px;
-  box-shadow: 0 2px 0px rgba(0, 0, 0, 0.3);
-
-  transform: translate(-200%);
-  transition: transform 0.3s ease-out;
-}
-
-#main-view-corner span {
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  font-weight: bold;
-  font-size: 20px;
-}
-
-#main-view-corner span:hover {
-  color: rgba(255, 194, 71, 0.8);
-}
-
-.input-output {
-  margin-top: 45%;
-  /* opacity: 0; */
-  /* display: none; */
-}
-
-.shown {
-  opacity: 1 !important;
-  transform: translate(0) !important;
-}
-
-/* ---------------------------- */
-/* CLASSES CUSTOMIZING TOOLTIPS */
-/* ---------------------------- */
-.tippy-box[data-theme~='custom'] {
-  /* background-image: linear-gradient(to bottom right, #21c994, #94dd89); */
-  background-image: linear-gradient(
-    to bottom right,
-    rgba(250, 242, 208, 1),
-    rgb(144, 217, 244)
-  );
-  opacity: 0.8;
-  /* background-color: tomato; */
-  /* color: burlywood; */
-  color: black;
-}
+} */
 
 /* --------------------------- */
 /* SELECTORS FOR FONT ELEMENTS */
@@ -409,31 +453,6 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
   position: relative;
 }
 
-.span-chord-text {
-  font-size: 140% !important;
-  flex: 0 0 auto;
-  white-space: nowrap;
-  height: 2.2rem;
-  transform: translateY(12px);
-  margin-top: -12px;
-  background-color: rgba(211, 211, 211, 0.7);
-  color: rgba(13, 106, 182, 0.7);
-  border-radius: 10px;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-}
-
-.span-chord-symbol {
-  flex: 0 0 auto;
-  white-space: nowrap;
-  height: 2rem;
-  transform: translateY(12px);
-  margin-top: -12px;
-  background-color: rgba(211, 211, 211, 0.7);
-  color: rgba(13, 106, 182, 0.8);
-  border-radius: 10px;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-}
-
 #disable-font-label {
   /* font-family: auto; */
   font-family: Arial, Helvetica, sans-serif;
@@ -441,27 +460,20 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
   white-space: pre;
 }
 
-/* --------------------- */
-/* GENERAL USAGE CLASSES */
-/* --------------------- */
-/* gimmick class to hide element without using display:none; */
-.invisible-up {
-  margin-top: -100em;
-}
-
-/* disable pointer events for disabled buttons */
-.btn:disabled {
-  pointer-events: none;
-}
-
-.hidden {
-  display: none;
-}
-
-.disabled {
-  pointer-events: none;
-  opacity: 0.5;
-  cursor: not-allowed;
+/* ---------------------------- */
+/* CLASSES CUSTOMIZING TOOLTIPS */
+/* ---------------------------- */
+.tippy-box[data-theme~='custom'] {
+  /* background-image: linear-gradient(to bottom right, #21c994, #94dd89); */
+  background-image: linear-gradient(
+    to bottom right,
+    rgba(250, 242, 208, 1),
+    rgb(144, 217, 244)
+  );
+  opacity: 0.8;
+  /* background-color: tomato; */
+  /* color: burlywood; */
+  color: black;
 }
 
 /* ------------------------ */

@@ -31,15 +31,72 @@
       alt="MusiColab Logo"
     />
 
-    <div id ="audio-player-and-controls" class="container">
-      <h1 id="heading">ChordFinder</h1>
+    <h1 id="heading">ChordFinder</h1>
+    <div id ="audio-player-and-controls">
       <center>
-        <div class="preface-audio">
+        <div class="preface-audio-help">
           <div >To import an audio file, either drag and drop it in the space below or use the 'Audio I/O' controls to select the file.</div>       
-        </div>     
- 
-       
-        <div   class="edit-options d-none">
+        </div>   
+        
+        <div  id='toolbar' class="d-none">
+          <div class="preface-annotation-help d-none">  
+            <div >Now select an annotation with the Analyze button in 'Audio I/O' controls (this process later on will be automatic by fetching a file from the MusiColab server)</div>
+          </div>     
+
+          <div id='left-toolbar-controls'  class=" d-none toolbar-controls ">
+            <button id="toggle-SnapOnBeats-btn" class="no-border">
+              <i class="fa-solid fa-toggle-on fa-xl d-none"></i>
+              <i class="fa-solid fa-toggle-off fa-xl"></i>
+              <div class="control-label">Snap (beats)</div>
+            </button>
+
+            <button id="toggle-clickTrack-btn" class="no-border">
+              <i class="fa-solid fa-toggle-on fa-xl d-none"></i>
+              <i class="fa-solid fa-toggle-off fa-xl"></i>
+              <div class="control-label">Click Track</div>
+            </button>
+          </div>
+
+          <div  id='center-toolbar-controls' class="d-none toolbar-controls">
+            <select id="annotation-list" class="form-control-sm"></select>
+
+            <button class="no-border no-padding" id="delete-annotation-btn">
+              <i class="fa-solid fa-trash-can"></i>
+              <div class="control-label no-padding">Delete</div>
+            </button>
+
+            <button id="toggle-edit-btn" class="no-border ">
+              <i class="fa-solid fa-toggle-on fa-xl d-none"></i>
+              <i class="fa-solid fa-toggle-off fa-xl"></i>
+              <div class="control-label">Edit</div>
+            </button>     
+          </div>
+      
+          <div id='right-toolbar-controls' class="toolbar-controls pointer-events-disabled">         
+              <button   class="btn-edit-mode disabled d-none" id="edit-chord-btn">
+                <i class="fa-solid fa-pen fa-xl"></i>
+                <div class="control-label">Edit chord</div>
+              </button>
+              <button class="btn-edit-mode disabled  d-none"  id="save-chords-btn" >
+                <i class="fa-solid fa-floppy-disk fa-xl"></i>
+                <div class="control-label">Save chords</div>
+              </button>
+              <button class="btn-edit-mode disabled  d-none" id="cancel-editing-btn" >
+                <i class="fa-solid fa-xmark fa-xl"></i>
+                <div class="control-label">Cancel</div>
+              </button>     
+              
+              <div id='audio-file-name'>---</div>
+          </div>     
+
+          <div id='info-question' class="d-none">
+              <i class="fa-solid fa-circle-question  fa-xl"></i>
+              <i class="fa-solid fa-circle-info fa-xl d-none"></i>
+          </div>         
+        </div>
+
+
+        <!-- <div   class="edit-options d-none">
           <div class="preface-annotation d-none">  
             <div >Now select an annotation with the Analyze button in 'Audio I/O' controls (this process later on will be automatic by fetching a file from the MusiColab server)</div>
           </div>     
@@ -72,7 +129,7 @@
               <div class="control-label">Edit</div>
             </button>     
           </div>
-     
+      
           <div id='edit-mode-controls' class="right-controls edit-controls pointer-events-disabled">         
               <button   class="btn-edit-mode disabled d-none" id="edit-chord-btn">
                 <i class="fa-solid fa-pen fa-xl"></i>
@@ -88,20 +145,22 @@
               </button>     
               
               <div id='audio-file-name'>---</div>
-            </div>     
+          </div>     
 
-            <div id='info-question' class="d-none">
+          <div id='info-question' class="d-none">
               <i class="fa-solid fa-circle-question  fa-xl"></i>
               <i class="fa-solid fa-circle-info fa-xl d-none"></i>
-            </div>
-          </div>
+          </div>         
+        </div> -->
 
-
-        <div id="main-view">
-          <div id="main-view-waveform">
+        <!-- audio player -->
+        <div id="audio-player">
+          <div id="audio-container">
             <div id="wavetimeline"></div>
-            <div class="drag-text">Drop the audio file here!</div>
-            <div id="waveform"></div>
+            <!-- <div class="drag-text">Drop the audio file here!</div> -->
+            <div id="waveform">
+              <div class="drag-text">Drop the audio file here!</div>
+            </div>
 
             <div class="player-controls">
               <div class="left-controls">                  
@@ -114,7 +173,7 @@
                   <div class="control-label no-padding">Zoom Out</div>
                 </button>
               </div>
-              <div class="center-controls controls-gap">
+              <div class="center-controls ">
                 <button id="rewind-btn" class="no-border disabled">
                   <i class="fa-solid fa-backward-step fa-lg"></i>
                 </button>
@@ -142,27 +201,27 @@
             </div>
           </div>
 
-          <div id="main-view-audio-in-out-controls">
-            <div class="audio-in-out-controls">
-              <button id="import-audio-btn" class="input-output no-border" draggable="true">
+          <!-- Sidebar -->
+          <div id="audio-sidebar-controls" class="audio-sidebar">
+            <button id="import-audio-btn" class="no-border" draggable="true">
                 <i class="fa-solid fa-upload fa-xl"></i>
                 <div class="control-label">Import Audio</div>
-              </button>
-
-              <div class="item" id="item" draggable="true"></div>
-              
-              <button id="analyze-chords-btn" class="input-output no-border disabled">
+            </button>           
+                    
+            <button id="analyze-chords-btn" class="no-border disabled">
                 <i class="fa-solid fa-file-audio fa-xl"></i>
                 <div class="control-label">Analyze</div>
-              </button>
-              <button id="download-chords-btn" class="input-output no-border disabled">
+            </button>
+            
+            <button id="download-chords-btn" class="no-border disabled">
                 <i class="fa-solid fa-download fa-xl"></i>
-                <div class="control-label">Download</div>
-              </button>
-            </div>
-          </div>
-
-          <div id="main-view-corner"><span>Audio I/O Controls</span></div>
+             <div class="control-label">Download</div>
+            </button>       
+          </div> 
+          <div id="audio-sidebar-text" class="audio-sidebar">
+            <span>Audio I/O Controls</span>
+          </div>  
+   
         </div>
       </center>
     </div>
@@ -484,15 +543,8 @@
               <div class="form-group">
                 <label for="annotationDescription"
                   >Annotation Description:</label
-                >              
-                <textarea
-                  class="form-control"
-                  id="annotationDescription"
-                  placeholder="Enter annotation description"
-                  rows="5"
-                ></textarea
-
-                <div class="form-control" id="annotationDescription" contenteditable="true" style="height: 5em; overflow-y: auto;"></div>
+                >           
+                <div class="form-control" id="annotationDescription" contenteditable="true" style="height: 8em; overflow-y: auto;"></div>
               </div>
             </form>
             <div class="modal-footer">

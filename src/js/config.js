@@ -39,6 +39,7 @@ export const MODAL_SINGLETON_PROPS = {
   delay: [500, 350],
   moveTransition: 'transform 0.25s ease-out',
   hideOnClick: false,
+  // content: reference => reference.getAttribute('data-modal-tooltip'),
 
   // theme: 'custom',
   // followCursor: true,

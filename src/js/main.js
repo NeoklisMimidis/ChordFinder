@@ -59,13 +59,13 @@ wavesurfer.on('ready', function () {
   }
 });
 
-// - Testing files
+// - Start application with Testing files loaded to avoid each time importing them by selecting them
 // Local files (Parcel 2 loading local files requires url: in front)
-// import audioFileURL from 'url:../demo/01_-_I_Saw_Her_Standing_There.wav';
-// import annotationFile from 'url:../demo/01_-_I_Saw_Her_Standing_There.jams';
+// import audioFileURL from 'url:../../demo_files/01_-_I_Saw_Her_Standing_There.wav';
+// import annotationFile from 'url:../../demo_files/01_-_I_Saw_Her_Standing_There.jams';
 
-// import audioFileURL from 'url:../demo/test.mp3';
-// import annotationFile from 'url:../demo/test.jams';
+import audioFileURL from 'url:../../demo_files/test.mp3';
+import annotationFile from 'url:../../demo_files/test.jams';
 
-// loadAudioFile(audioFileURL);
+loadAudioFile(audioFileURL);
 // loadJAMS(annotationFile);

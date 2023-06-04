@@ -32,15 +32,15 @@ let fileName = 'Unknown'; // store prev filename on every import
 const minPxPerSec = 152;
 let prevVolumeSliderValue = 0.5;
 
-// Sidebar (toggle) AUDIO I/O functionality
 export function toggleAudioInOutControls() {
-  const mainViewAudioInOutControls = document.getElementById(
-    'main-view-audio-in-out-controls'
+  const audioSidebarText = document.getElementById('audio-sidebar-text');
+  const audioSidebarControls = document.getElementById(
+    'audio-sidebar-controls'
   );
-  const mainViewCorner = document.getElementById('main-view-corner');
-  mainViewCorner.addEventListener('click', e => {
-    mainViewAudioInOutControls.classList.toggle('shown');
-    mainViewCorner.classList.toggle('shown');
+
+  audioSidebarText.addEventListener('click', e => {
+    audioSidebarControls.classList.toggle('shown');
+    audioSidebarText.classList.toggle('shown');
   });
 }
 
@@ -128,7 +128,7 @@ export function loadAudioFile(input) {
   if (file !== undefined) {
     fileName = file.name;
   }
-  document.querySelector('#audio-file-name').textContent = fileName;
+  document.querySelector('#audio-file-name').textContent = fileName.trim();
 }
 
 export function audioPlayerEvents(wavesurfer) {
@@ -191,13 +191,13 @@ export function audioPlayerEvents(wavesurfer) {
 export function resetAudioPlayer() {
   // enable analyze button
   document.querySelector('#analyze-chords-btn').classList.remove('disabled');
-  document.querySelector('.edit-options').classList.remove('d-none');
+  document.querySelector('#toolbar').classList.remove('d-none');
 
   // Left controls
   zoomInBtn.classList.remove('disabled');
   zoomOutBtn.classList.remove('disabled');
   // also go back to default zoom level (+ with a gimmick)
-  // this gimmick trick is used to avoid problem with the waveform rendering if same audio is imported with wavesurfer.load()
+  // this is a gimmick trick that is used to avoid the problem with the waveform not rendering if user imports the same audio file wavesurfer.load()
   wavesurfer.zoom(minPxPerSec + 1);
   setTimeout(() => {
     // and a small timeout for rendering reasons
@@ -276,23 +276,20 @@ function _initElementsState() {
   wavesurfer.clearRegions();
 
   // Edit options controls
-  document.querySelector('.preface-audio').classList.add('d-none');
-  document.querySelector('.preface-annotation').classList.remove('d-none');
-  document.querySelector('.edit-options').classList.add('d-none');
-  document
-    .querySelector('.edit-options .left-controls')
-    .classList.add('d-none');
-  document
-    .querySelector('.edit-options .center-controls')
-    .classList.add('d-none');
-  const editModeControls = document.querySelector('#edit-mode-controls');
-  editModeControls.querySelectorAll('.btn-edit-mode').forEach(button => {
+  document.querySelector('.preface-audio-help').classList.add('d-none');
+  document.querySelector('.preface-annotation-help').classList.remove('d-none');
+  document.querySelector('#toolbar').classList.add('d-none');
+  document.querySelector('#left-toolbar-controls').classList.add('d-none');
+  document.querySelector('#center-toolbar-controls').classList.add('d-none');
+  const annotationTools = document.querySelector('#right-toolbar-controls');
+  annotationTools.querySelectorAll('.btn-edit-mode').forEach(button => {
     button.classList.add('d-none');
   });
   const audioFileName = document.querySelector('#audio-file-name');
   audioFileName.classList.remove('d-none');
+  audioFileName.classList.add('pointer-events-disabled');
   // removing editing color
-  document.querySelector('.edit-options').classList.remove('editing-on');
+  document.querySelector('#toolbar').classList.remove('editing-on');
 
   document.querySelector('#info-question').classList.add('d-none');
 

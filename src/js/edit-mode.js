@@ -43,7 +43,7 @@ export const deleteAnnotationBtn = document.querySelector(
 );
 export const toggleEditBtn = document.querySelector('#toggle-edit-btn');
 // Right controls & related Edit Mode Controls(Editing)
-const editModeControls = document.querySelector('#edit-mode-controls');
+const annotationTools = document.querySelector('#right-toolbar-controls');
 const audioFileName = document.querySelector('#audio-file-name');
 const editChordBtn = document.querySelector('#edit-chord-btn');
 const saveChordsBtn = document.querySelector('#save-chords-btn');
@@ -82,11 +82,11 @@ let chord = {
 export function editModeEvents(wavesurfer) {
   /* Events (for editor) */
 
-  // Default browsers warning when exiting without saving
-  window.addEventListener('beforeunload', function (e) {
-    if (saveChordsBtn.classList.contains('disabled')) return;
-    e.returnValue = '';
-  });
+  // // Default browsers warning when exiting without saving
+  // window.addEventListener('beforeunload', function (e) {
+  //   if (saveChordsBtn.classList.contains('disabled')) return;
+  //   e.returnValue = '';
+  // });
 
   /* --------------------- */
   /* Left controls events */
@@ -285,16 +285,12 @@ export function editModeEvents(wavesurfer) {
 
 //////
 export function resetEditOptions() {
-  // hide preface annotation
-  document.querySelector('.preface-annotation').classList.add('d-none');
+  // hide preface annotation help
+  document.querySelector('.preface-annotation-help').classList.add('d-none');
 
   // enable other edit related options
-  document
-    .querySelector('.edit-options .left-controls')
-    .classList.remove('d-none');
-  document
-    .querySelector('.edit-options .center-controls')
-    .classList.remove('d-none');
+  document.querySelector('#left-toolbar-controls').classList.remove('d-none');
+  document.querySelector('#center-toolbar-controls').classList.remove('d-none');
   document.querySelector('#info-question').classList.remove('d-none');
 
   // Left controls
@@ -308,7 +304,7 @@ export function resetEditOptions() {
 
   // Right controls (Edit mode controls)
   audioFileName.classList.remove('d-none');
-  editModeControls.querySelectorAll('.btn-edit-mode').forEach(button => {
+  annotationTools.querySelectorAll('.btn-edit-mode').forEach(button => {
     button.classList.add('d-none');
     button.classList.add('disabled');
   });
@@ -317,10 +313,10 @@ export function resetEditOptions() {
   document.querySelector('#download-chords-btn').classList.remove('disabled');
 
   // removing editing color
-  document.querySelector('.edit-options').classList.remove('editing-on');
+  document.querySelector('#toolbar').classList.remove('editing-on');
 
   // Tippy (tooltips) related functionality reset BUG why it doesnt remove?
-  editModeControls.classList.remove('pointer-events-disabled');
+  annotationTools.classList.add('pointer-events-disabled');
   const questionIcon = document.querySelector('.fa-circle-question');
   const infoIcon = document.querySelector('.fa-circle-info');
   questionIcon.classList.remove('d-none');
@@ -367,7 +363,7 @@ function toggleEdit() {
 
   // Edit mode controls  #buttons: Edit chords || Save chords || Cancel
   audioFileName.classList.toggle('d-none');
-  editModeControls.querySelectorAll('.btn-edit-mode').forEach(button => {
+  annotationTools.querySelectorAll('.btn-edit-mode').forEach(button => {
     button.classList.toggle('d-none');
   });
 
@@ -377,11 +373,11 @@ function toggleEdit() {
   const infoIcon = document.querySelector('.fa-circle-info');
   // Tippy (tooltips) related functionality
   if (editState) {
-    editModeControls.classList.remove('pointer-events-disabled');
+    annotationTools.classList.remove('pointer-events-disabled');
     questionIcon.classList.add('d-none');
     infoIcon.classList.remove('d-none');
   } else {
-    editModeControls.classList.add('pointer-events-disabled');
+    annotationTools.classList.add('pointer-events-disabled');
     questionIcon.classList.remove('d-none');
     infoIcon.classList.add('d-none');
   }
@@ -647,7 +643,7 @@ function _disableAnnotationListAndDeleteAnnotation() {
   saveChordsBtn.classList.remove('disabled');
   cancelEditingBtn.classList.remove('disabled');
 
-  document.querySelector('.edit-options').classList.add('editing-on');
+  document.querySelector('#toolbar').classList.add('editing-on');
 }
 
 function _disableSaveChordsAndCancelEditing() {
@@ -660,7 +656,7 @@ function _disableSaveChordsAndCancelEditing() {
   saveChordsBtn.classList.add('disabled');
   cancelEditingBtn.classList.add('disabled');
 
-  document.querySelector('.edit-options').classList.remove('editing-on');
+  document.querySelector('#toolbar').classList.remove('editing-on');
 }
 
 function _enableEditChordButtonFunction(selMarker) {
@@ -737,6 +733,7 @@ function closeModal() {
   isModalActive = false;
 }
 
+import tippy, { createSingleton, followCursor, animateFill } from 'tippy.js';
 function createTooltipsChordEditor() {
   // Assigning a tooltip according to mapping (tippy step 1)
   tableElements.forEach(element => {
@@ -771,6 +768,17 @@ function createTooltipsChordEditor() {
     'data-modal-tooltip',
     MODAL_SINGLETON_PROPS
   );
+
+  // createSingleton(tippy('#chord-editor td'), MODAL_SINGLETON_PROPS);
+
+  // const tippyInstances = tippy('#chord-editor td');
+  // const singleton = createSingleton(tippyInstances, {
+  //   delay: 100,
+  //   moveTransition: 'transform 0.25s ease-out',
+  //   hideOnClick: false,
+  //   content: '123',
+  // });
+  // tippyInstances.setContent('123');
 }
 
 /**
