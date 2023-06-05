@@ -53,7 +53,7 @@ tippy('#center-toolbar-controls', {
 
 const rightToolbarControls = `<strong>Edit chord</strong> allows modifying the selected chord.<br><strong>Save chords</strong> stores changes made  either as separate or replaced annotation (except original annotation)<br><strong>Cancel</strong> reverts back without altering.<br><span style="font-style: italic;">Customize and manage your chord edits with ease.</span>`;
 tippy('#right-toolbar-controls', {
-  content: editModeControlsContent,
+  content: rightToolbarControls,
   theme: 'translucent',
   // theme: 'light-border',
   // placement: 'right-start',
