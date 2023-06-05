@@ -15,8 +15,8 @@ import { loadFile } from './components/utilities.js';
 
 /* Elements */
 const waveform = document.querySelector('#waveform');
-const zoomInBtn = document.querySelector('.zoom-in-btn');
-const zoomOutBtn = document.querySelector('.zoom-out-btn');
+const zoomInBtn = document.querySelector('#zoom-in-btn');
+const zoomOutBtn = document.querySelector('#zoom-out-btn');
 
 const rewindBtn = document.querySelector('#rewind-btn');
 const playPauseBtn = document.querySelector('#play-pause-btn');
@@ -134,21 +134,19 @@ export function loadAudioFile(input) {
 export function audioPlayerEvents(wavesurfer) {
   /* Events (for audio player) */
 
-  //  toggle on/off mute
-  muteUnmuteBtn.addEventListener('click', muteUnmute);
+  // Zoom in/out events
+  zoomInBtn.addEventListener('click', zoomIn);
+  zoomOutBtn.addEventListener('click', zoomOut);
 
   // play, pause & rewind functionalities
   playPauseBtn.addEventListener('click', playPause);
+  rewindBtn.addEventListener('click', rewind);
 
-  rewindBtn.addEventListener('click', function () {
-    playBtn.classList.remove('d-none');
-    pauseBtn.classList.add('d-none');
-    wavesurfer.stop();
-    wavesurfer.seekAndCenter(0);
-  });
+  //  toggle on/off mute
+  muteUnmuteBtn.addEventListener('click', muteUnmute);
 
   // play/pause with space button if playback started
-  document.addEventListener('keydown', _spaceKeyPlayPause);
+  document.addEventListener('keydown', keyboardPlayerEvents);
 
   // on finish change PLAY button
   wavesurfer.on('finish', () => {
@@ -160,12 +158,11 @@ export function audioPlayerEvents(wavesurfer) {
     // wavesurfer.params.autoCenter = true;
   });
 
-  // Zoom in/out events
-  zoomInBtn.addEventListener('click', zoomIn);
-  zoomOutBtn.addEventListener('click', zoomOut);
-
   // change volume with a slider
-  volumeSlider.addEventListener('input', setVolumeWithSlider);
+  // volumeSlider.addEventListener('input', setVolumeWithSlider);
+  volumeSlider.addEventListener('input', e =>
+    setVolumeWithSlider(e.target.value)
+  );
 
   // TODO there will be option switching between those 2 modes
   // ***1st mode with scrolling***
@@ -223,17 +220,38 @@ export function resetAudioPlayer() {
   console.log('resetAudioPlayer is complete 😁');
 }
 
-function setVolumeWithSlider() {
-  const volumeValue = parseFloat(this.value);
-  prevVolumeSliderValue = volumeValue;
-  if (volumeValue === 0) {
-    muteBtn.classList.remove('d-none');
-    unmuteBtn.classList.add('d-none');
-  } else {
-    muteBtn.classList.add('d-none');
-    unmuteBtn.classList.remove('d-none');
+function zoomIn() {
+  wavesurfer.zoom(wavesurfer.params.minPxPerSec * 2);
+  zoomOutBtn.classList.remove('disabled');
+
+  if (wavesurfer.params.minPxPerSec >= 600) {
+    zoomInBtn.classList.add('disabled');
   }
-  wavesurfer.setVolume(volumeValue);
+}
+
+function zoomOut() {
+  wavesurfer.zoom(wavesurfer.params.minPxPerSec / 2);
+  zoomInBtn.classList.remove('disabled');
+  if (wavesurfer.params.minPxPerSec <= 50) {
+    zoomOutBtn.classList.add('disabled');
+  }
+}
+
+function rewind() {
+  playBtn.classList.remove('d-none');
+  pauseBtn.classList.add('d-none');
+  wavesurfer.stop();
+  wavesurfer.seekAndCenter(0);
+}
+
+function playPause() {
+  _playPauseToggleStates();
+
+  if (wavesurfer.isPlaying()) {
+    wavesurfer.pause();
+  } else {
+    wavesurfer.play();
+  }
 }
 
 function muteUnmute() {
@@ -255,13 +273,59 @@ function muteUnmute() {
   }
 }
 
-function playPause() {
-  _playPauseToggleStates();
+function setVolumeWithSlider(volumeValue) {
+  volumeValue = parseFloat(volumeValue);
 
-  if (wavesurfer.isPlaying()) {
-    wavesurfer.pause();
+  prevVolumeSliderValue = volumeValue;
+  if (volumeValue === 0) {
+    muteBtn.classList.remove('d-none');
+    unmuteBtn.classList.add('d-none');
   } else {
-    wavesurfer.play();
+    muteBtn.classList.add('d-none');
+    unmuteBtn.classList.remove('d-none');
+  }
+  wavesurfer.setVolume(volumeValue);
+}
+
+function keyboardPlayerEvents(event) {
+  if (isModalActive) return; // If the modal is active, don't execute the event listener
+  const key = event.code;
+  console.log(key);
+  if (key === 'Space') {
+    event.preventDefault();
+    playPause(wavesurfer);
+  } else if (key === 'KeyM') {
+    event.preventDefault();
+    muteUnmute(wavesurfer);
+  } else if (key === 'Digit0' || key === 'Numpad0') {
+    event.preventDefault();
+    rewind(wavesurfer);
+  } else if (key === 'ArrowUp') {
+    if (prevVolumeSliderValue === 1) return;
+    event.preventDefault();
+    const newVolumeSliderValue = parseFloat(
+      (prevVolumeSliderValue + 0.05).toFixed(2)
+    );
+    setVolumeWithSlider(newVolumeSliderValue);
+    volumeSlider.value = newVolumeSliderValue;
+  } else if (key === 'ArrowDown') {
+    if (prevVolumeSliderValue === 0) return;
+    event.preventDefault();
+    const newVolumeSliderValue = parseFloat(
+      (prevVolumeSliderValue - 0.05).toFixed(2)
+    );
+    setVolumeWithSlider(newVolumeSliderValue);
+    volumeSlider.value = newVolumeSliderValue;
+  } else if (key === 'ArrowRight') {
+    event.preventDefault();
+    wavesurfer.skipForward(5);
+  } else if (key === 'ArrowLeft') {
+    event.preventDefault();
+    wavesurfer.skipBackward(5);
+  } else if (key === 'Equal' || key === 'NumpadAdd') {
+    zoomIn();
+  } else if (key === 'Minus' || key === 'NumpadSubtract') {
+    zoomOut();
   }
 }
 
@@ -281,8 +345,8 @@ function _initElementsState() {
   document.querySelector('#toolbar').classList.add('d-none');
   document.querySelector('#left-toolbar-controls').classList.add('d-none');
   document.querySelector('#center-toolbar-controls').classList.add('d-none');
-  const annotationTools = document.querySelector('#right-toolbar-controls');
-  annotationTools.querySelectorAll('.btn-edit-mode').forEach(button => {
+  const editModeTools = document.querySelector('#right-toolbar-controls');
+  editModeTools.querySelectorAll('.btn-edit-mode').forEach(button => {
     button.classList.add('d-none');
   });
   const audioFileName = document.querySelector('#audio-file-name');
@@ -317,56 +381,45 @@ function _playPauseToggleStates() {
   pauseBtn.classList.toggle('d-none');
 }
 
-function _spaceKeyPlayPause(event) {
-  if (isModalActive) return; // If the modal is active, don't execute the event listener
-  if (event.code === 'Space') {
-    event.preventDefault(); // prevent default space button behavior (scrolling down)
-    playPause(wavesurfer);
-  }
-}
-
-function zoomIn() {
-  wavesurfer.zoom(wavesurfer.params.minPxPerSec * 2);
-  zoomOutBtn.classList.remove('disabled');
-
-  if (wavesurfer.params.minPxPerSec >= 600) {
-    zoomInBtn.classList.add('disabled');
-  }
-}
-
-function zoomOut() {
-  wavesurfer.zoom(wavesurfer.params.minPxPerSec / 2);
-  zoomInBtn.classList.remove('disabled');
-  if (wavesurfer.params.minPxPerSec <= 50) {
-    zoomOutBtn.classList.add('disabled');
-  }
-}
-
 /**
  * Formats time in minutes and seconds with variable precision
+ *
+ * e.g. 169 seconds will become 2:49 (2min & 49seconds)
  */
 function formatTimeCallback(seconds, pxPerSec) {
   seconds = Number(seconds);
   const minutes = Math.floor(seconds / 60);
-  seconds %= 60;
 
+  // calculate the remainder of the division
+  seconds %= 60;
   // Convert seconds to decimal format
   seconds /= 100;
 
   let secondsStr;
   if (pxPerSec > 300) {
     secondsStr = seconds.toFixed(3);
+
+    // formatSecondsWithThreeDecimals (e.g.0.550 => 0.55 ||0.500 =>0.50  || 0.525 => 0.52:5)
+    secondsStr = _formatSecondsWithThreeDecimals(secondsStr);
   } else {
     secondsStr = seconds.toFixed(2);
+    return secondsStr;
   }
+  const decimalPart = secondsStr.split('.')[1];
 
-  if (minutes > 0) {
-    if (seconds < 0.1) {
-      secondsStr = '0' + secondsStr;
-    }
-    return `${minutes}:${secondsStr}`;
+  return `${minutes}:${decimalPart}`;
+}
+
+function _formatSecondsWithThreeDecimals(number) {
+  const numberString = number.toString();
+  const lastNumber = numberString.charAt(numberString.length - 1);
+
+  if (lastNumber === '0') {
+    return numberString.slice(0, -1);
+  } else {
+    const formattedNumber = numberString.slice(0, -1) + ':' + lastNumber;
+    return formattedNumber;
   }
-  return secondsStr;
 }
 
 /**

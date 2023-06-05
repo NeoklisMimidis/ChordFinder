@@ -7,7 +7,7 @@ import {
   editState,
   annotationList,
   deleteAnnotationBtn,
-  resetEditOptions,
+  resetToolbar,
 } from './edit-mode.js';
 
 import { variations, accidentals, chordColor } from './components/mappings.js';
@@ -41,7 +41,7 @@ export function loadJAMS(input) {
       // Reset markers,regions & controls
       wavesurfer.clearMarkers();
       wavesurfer.clearRegions();
-      resetEditOptions();
+      resetToolbar();
 
       createAnnotationsList(jamsFile);
 

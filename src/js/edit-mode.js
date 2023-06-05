@@ -43,7 +43,7 @@ export const deleteAnnotationBtn = document.querySelector(
 );
 export const toggleEditBtn = document.querySelector('#toggle-edit-btn');
 // Right controls & related Edit Mode Controls(Editing)
-const annotationTools = document.querySelector('#right-toolbar-controls');
+const editModeTools = document.querySelector('#right-toolbar-controls');
 const audioFileName = document.querySelector('#audio-file-name');
 const editChordBtn = document.querySelector('#edit-chord-btn');
 const saveChordsBtn = document.querySelector('#save-chords-btn');
@@ -91,11 +91,8 @@ export function editModeEvents(wavesurfer) {
   /* --------------------- */
   /* Left controls events */
   /* -------------------- */
-  toggleClickTrackBtn.addEventListener('click', () => {
-    // Create toggle functionality for Click Track button
-    [clickTrackState] = createToggle('#toggle-clickTrack-btn');
-  });
 
+  //  --- Snap (beats)! ---
   toggleSnapOnBeatsBtn.addEventListener('click', () => {
     // Create toggle functionality for Snap (beats) button
     [snapOnBeatsState] = createToggle('#toggle-SnapOnBeats-btn');
@@ -113,7 +110,8 @@ export function editModeEvents(wavesurfer) {
       const absoluteDifference = Math.abs(
         curBeatTime - wavesurfer.getCurrentTime()
       );
-      closeBeats = absoluteDifference <= 0.1;
+      closeBeats = absoluteDifference <= 0.5;
+      console.log(marker.time);
 
       if (snapOnBeatsState) {
         if (editState && wavesurfer.isPlaying()) {
@@ -122,7 +120,7 @@ export function editModeEvents(wavesurfer) {
           snapOnBeats(marker.time, event);
         } else {
           console.warn(
-            'Snap on beats, is disabled on Edit Mode while audio is paused ⚠️. Enjoy editing!'
+            'Snap on beats, is disabled on Edit Mode while audio is paused ⚠️ Enjoy editing!'
           );
         }
       }
@@ -133,7 +131,7 @@ export function editModeEvents(wavesurfer) {
     const absoluteDifference = Math.abs(
       curBeatTime - wavesurfer.getCurrentTime()
     );
-    closeBeats = absoluteDifference <= 0.1;
+    closeBeats = absoluteDifference <= 0.5;
 
     if (snapOnBeatsState) {
       if (editState && wavesurfer.isPlaying()) {
@@ -142,42 +140,50 @@ export function editModeEvents(wavesurfer) {
         snapOnBeats(region.start, event);
       } else {
         console.warn(
-          'Snap on beats, is disabled on Edit Mode while audio is paused ⚠️. Enjoy editing!'
+          'Snap on beats, is disabled on Edit Mode while audio is paused ⚠️ Enjoy editing!'
         );
       }
     }
   });
 
-  let prevColor;
-  // Click track!
-  wavesurfer.on('region-in', region => {
-    // highlight every beat
-    prevColor = region.color;
+  //  --- Click track! ---
+  // initialize web audio api for click track (not actually an event)
+  [audioContext, primaryGainControl] = _initWebAudio();
+  console.log('🚀:', audioContext, '🚀:', primaryGainControl);
 
+  toggleClickTrackBtn.addEventListener('click', () => {
+    // Create toggle functionality for Click Track button
+    [clickTrackState] = createToggle('#toggle-clickTrack-btn');
+  });
+
+  let prevColor;
+  wavesurfer.on('region-in', region => {
     curBeatTime = region.start;
     // console.log(curBeatTime);
 
     if (!clickTrackState) return;
+    // highlight every beat
+    prevColor = region.color;
     region.update((region.color = CLICK_TRACK_HIGHLIGHT_COLOR));
+
+    // closeBeats is a way of avoiding very close beats that occur when user clicks on the waveform on a new position while audio is playing (seeks). T.L.D.R avoid next beat if very close to the last one played
     if (!closeBeats) clickTrack();
     closeBeats = false;
   });
   // revert back to default color when leaving a region
   wavesurfer.on('region-out', region => {
-    region.update((region.color = prevColor));
-  });
-
-  wavesurfer.on('pause', () => {
-    // Only in the case where annotations exist
-    if (wavesurfer.markers.markers[0]) {
-      updateMarkerDisplayWithColorizedRegions();
+    if (prevColor) {
+      region.update((region.color = prevColor));
     }
   });
 
-  // // This is a gimmick check to see if the annotation is loaded
-  // if (isAnnotationLoaded) {
-  //   updateMarkerDisplayWithColorizedRegions();
-  // }
+  // CAREFUL! onpause also triggers on waveform seek (so now when on activate clickTrackState it also colorizes )
+  wavesurfer.on('pause', () => {
+    // Only in the case where annotations exist
+    if (wavesurfer.markers.markers[0] && clickTrackState) {
+      updateMarkerDisplayWithColorizedRegions();
+    }
+  });
 
   /* ---------------------- */
   /* Center controls events */
@@ -284,7 +290,7 @@ export function editModeEvents(wavesurfer) {
 }
 
 //////
-export function resetEditOptions() {
+export function resetToolbar() {
   // hide preface annotation help
   document.querySelector('.preface-annotation-help').classList.add('d-none');
 
@@ -304,7 +310,7 @@ export function resetEditOptions() {
 
   // Right controls (Edit mode controls)
   audioFileName.classList.remove('d-none');
-  annotationTools.querySelectorAll('.btn-edit-mode').forEach(button => {
+  editModeTools.querySelectorAll('.btn-edit-mode').forEach(button => {
     button.classList.add('d-none');
     button.classList.add('disabled');
   });
@@ -316,13 +322,13 @@ export function resetEditOptions() {
   document.querySelector('#toolbar').classList.remove('editing-on');
 
   // Tippy (tooltips) related functionality reset BUG why it doesnt remove?
-  annotationTools.classList.add('pointer-events-disabled');
+  editModeTools.classList.add('pointer-events-disabled');
   const questionIcon = document.querySelector('.fa-circle-question');
   const infoIcon = document.querySelector('.fa-circle-info');
   questionIcon.classList.remove('d-none');
   infoIcon.classList.add('d-none');
 
-  console.log('resetEditOptions is complete 😁');
+  console.log('resetToolbar is complete 😁');
 }
 
 // - Center controls
@@ -363,7 +369,7 @@ function toggleEdit() {
 
   // Edit mode controls  #buttons: Edit chords || Save chords || Cancel
   audioFileName.classList.toggle('d-none');
-  annotationTools.querySelectorAll('.btn-edit-mode').forEach(button => {
+  editModeTools.querySelectorAll('.btn-edit-mode').forEach(button => {
     button.classList.toggle('d-none');
   });
 
@@ -373,11 +379,11 @@ function toggleEdit() {
   const infoIcon = document.querySelector('.fa-circle-info');
   // Tippy (tooltips) related functionality
   if (editState) {
-    annotationTools.classList.remove('pointer-events-disabled');
+    editModeTools.classList.remove('pointer-events-disabled');
     questionIcon.classList.add('d-none');
     infoIcon.classList.remove('d-none');
   } else {
-    annotationTools.classList.add('pointer-events-disabled');
+    editModeTools.classList.add('pointer-events-disabled');
     questionIcon.classList.remove('d-none');
     infoIcon.classList.add('d-none');
   }
@@ -643,7 +649,9 @@ function _disableAnnotationListAndDeleteAnnotation() {
   saveChordsBtn.classList.remove('disabled');
   cancelEditingBtn.classList.remove('disabled');
 
+  console.log('123213 _disableAnnotationListAndDeleteAnnotation');
   document.querySelector('#toolbar').classList.add('editing-on');
+  console.log(document.querySelector('#toolbar'));
 }
 
 function _disableSaveChordsAndCancelEditing() {

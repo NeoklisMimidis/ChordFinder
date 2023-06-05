@@ -3,24 +3,28 @@ export const EDIT_MODE_ENABLED_STYLE = {
   width: '2px',
   background: 'rgb(255, 255, 0)',
   opacity: 0.4,
+  marginTop: '-40px',
 };
 
 export const EDIT_MODE_DISABLED_STYLE = {
   width: '0.5px',
   background: 'rgb(128, 128, 128)',
   opacity: 0.6,
+  marginTop: '-40px',
 };
 
 export const NEW_MARKER_STYLE = {
   width: '2px',
   background: 'rgb(100,255,0)',
   opacity: 0.6,
+  marginTop: '-40px',
 };
 
 export const EDITED_MARKER_STYLE = {
   width: '2px',
   background: 'rgb(255,0,0)',
   opacity: 0.6,
+  marginTop: '-40px',
 };
 
 // Regions color while Click track activated
@@ -31,14 +35,24 @@ export const MARKERS_SINGLETON_PROPS = {
   delay: [500, 250],
   moveTransition: 'transform 0.2s ease-out',
   hideOnClick: false,
+  animateFill: false,
+  // interactive: false,
   animation: 'scale-subtle',
   theme: 'custom',
+  onShow: function (instance) {
+    // Get the tooltip element
+    const tooltip = instance.popper.querySelector('.tippy-content');
+    // Apply text selection behavior to the tooltip content
+    tooltip.style.userSelect = 'none';
+  },
 };
 
 export const MODAL_SINGLETON_PROPS = {
   delay: [500, 350],
   moveTransition: 'transform 0.25s ease-out',
   hideOnClick: false,
+  animateFill: false,
+  // interactive: false,
   // content: reference => reference.getAttribute('data-modal-tooltip'),
 
   // theme: 'custom',
