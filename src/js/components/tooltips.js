@@ -90,7 +90,7 @@ tippy('.fa-magnifying-glass-plus', {
   // theme: 'translucent',
   placement: 'top',
   arrow: false,
-  offset: [0, 30],
+  offset: [0, 21],
   onShow: function (instance) {
     const tooltip = instance.popper.querySelector('.tippy-content');
     tooltip.style.fontSize = '12px';
@@ -102,7 +102,7 @@ tippy('.fa-magnifying-glass-minus', {
   // theme: 'translucent',
   placement: 'top',
   arrow: false,
-  offset: [0, 30],
+  offset: [0, 21],
   onShow: function (instance) {
     const tooltip = instance.popper.querySelector('.tippy-content');
     tooltip.style.fontSize = '12px';
@@ -160,6 +160,18 @@ tippy('.fa-volume-high', {
 });
 tippy('.fa-volume-xmark', {
   content: 'Unmute (m)',
+  delay: [0, 0],
+  // theme: 'translucent',
+  placement: 'top',
+  arrow: false,
+  offset: [0, 30],
+  onShow: function (instance) {
+    const tooltip = instance.popper.querySelector('.tippy-content');
+    tooltip.style.fontSize = '12px';
+  },
+});
+tippy('.fa-repeat', {
+  content: 'Enable repeat (r)',
   delay: [0, 0],
   // theme: 'translucent',
   placement: 'top',

@@ -364,8 +364,13 @@ function toggleEdit() {
       : wavesurfer.params.minPxPerSec / 2
   );
 
-  const progress = wavesurfer.getCurrentTime() / wavesurfer.getDuration();
-  wavesurfer.seekAndCenter(progress);
+  if (wavesurfer.getCurrentTime() === wavesurfer.getDuration()) {
+    // this fixes a buggy situation that cursor stats at max audio duration and Edit toggle is pressed
+    wavesurfer.seekTo(0);
+  } else {
+    const progress = wavesurfer.getCurrentTime() / wavesurfer.getDuration();
+    wavesurfer.seekAndCenter(progress);
+  }
 
   // Edit mode controls  #buttons: Edit chords || Save chords || Cancel
   audioFileName.classList.toggle('d-none');

@@ -22,6 +22,7 @@ const rewindBtn = document.querySelector('#rewind-btn');
 const playPauseBtn = document.querySelector('#play-pause-btn');
 const playBtn = document.querySelector('#play-pause-btn .fa-play');
 const pauseBtn = document.querySelector('#play-pause-btn .fa-pause');
+const repeatBtn = document.querySelector('#repeat-btn');
 
 const muteUnmuteBtn = document.querySelector('#mute-unmute-btn');
 const muteBtn = document.querySelector('#mute-unmute-btn .fa-volume-xmark');
@@ -31,6 +32,7 @@ const volumeSlider = document.querySelector('.volume-slider');
 let fileName = 'Unknown'; // store prev filename on every import
 const minPxPerSec = 152;
 let prevVolumeSliderValue = 0.5;
+let repeatEnable = false;
 
 export function toggleAudioInOutControls() {
   const audioSidebarText = document.getElementById('audio-sidebar-text');
@@ -139,8 +141,9 @@ export function audioPlayerEvents(wavesurfer) {
   zoomOutBtn.addEventListener('click', zoomOut);
 
   // play, pause & rewind functionalities
-  playPauseBtn.addEventListener('click', playPause);
   rewindBtn.addEventListener('click', rewind);
+  playPauseBtn.addEventListener('click', playPause);
+  repeatBtn.addEventListener('click', repeat);
 
   //  toggle on/off mute
   muteUnmuteBtn.addEventListener('click', muteUnmute);
@@ -152,7 +155,14 @@ export function audioPlayerEvents(wavesurfer) {
   wavesurfer.on('finish', () => {
     console.log('finished!');
 
-    _playPauseToggleStates();
+    if (repeatEnable) {
+      wavesurfer.seekTo(0);
+      wavesurfer.play();
+      console.log('Play again bcs repeat is on ! 😁');
+    } else {
+      playBtn.classList.remove('d-none');
+      pauseBtn.classList.add('d-none');
+    }
 
     // // if mode is scrolling then TODO
     // wavesurfer.params.autoCenter = true;
@@ -208,6 +218,10 @@ export function resetAudioPlayer() {
   playBtn.classList.remove('d-none');
   pauseBtn.classList.add('d-none');
 
+  repeatBtn.classList.remove('disabled');
+  repeatBtn.classList.remove('repeat-enabled');
+  repeatEnable = false;
+
   muteUnmuteBtn.classList.remove('disabled');
   muteBtn.classList.add('d-none');
   unmuteBtn.classList.remove('d-none');
@@ -245,12 +259,30 @@ function rewind() {
 }
 
 function playPause() {
-  _playPauseToggleStates();
+  playBtn.classList.toggle('d-none');
+  pauseBtn.classList.toggle('d-none');
 
   if (wavesurfer.isPlaying()) {
     wavesurfer.pause();
   } else {
     wavesurfer.play();
+  }
+}
+
+function repeat() {
+  const repeatIcon = document.querySelector('.fa-repeat');
+
+  // if not already enabled then  enable it
+  if (repeatEnable) {
+    repeatEnable = false;
+    // repeatBtn.style.color = '';
+    repeatBtn.classList.remove('repeat-enabled');
+    repeatIcon._tippy.setContent('Enable repeat (r)');
+  } else {
+    repeatEnable = true;
+    // repeatBtn.style.color = 'Teal';
+    repeatBtn.classList.add('repeat-enabled');
+    repeatIcon._tippy.setContent('Disable repeat (r)');
   }
 }
 
@@ -318,7 +350,12 @@ function keyboardPlayerEvents(event) {
     volumeSlider.value = newVolumeSliderValue;
   } else if (key === 'ArrowRight') {
     event.preventDefault();
-    wavesurfer.skipForward(5);
+    if (wavesurfer.getCurrentTime() < wavesurfer.getDuration() - 5) {
+      wavesurfer.skipForward(5);
+    } else {
+      wavesurfer.pause();
+      wavesurfer.seekTo(1);
+    }
   } else if (key === 'ArrowLeft') {
     event.preventDefault();
     wavesurfer.skipBackward(5);
@@ -326,6 +363,8 @@ function keyboardPlayerEvents(event) {
     zoomIn();
   } else if (key === 'Minus' || key === 'NumpadSubtract') {
     zoomOut();
+  } else if (key === 'KeyR') {
+    repeat();
   }
 }
 
@@ -369,16 +408,12 @@ function _initElementsState() {
   rewindBtn.classList.add('disabled');
   playPauseBtn.classList.add('disabled');
   muteUnmuteBtn.classList.add('disabled');
+  repeatBtn.classList.add('disabled');
 
   // Right controls player
   volumeSlider.classList.add('disabled');
 
   console.log('_initElementsState is complete 😁');
-}
-
-function _playPauseToggleStates() {
-  playBtn.classList.toggle('d-none');
-  pauseBtn.classList.toggle('d-none');
 }
 
 /**
@@ -403,7 +438,6 @@ function formatTimeCallback(seconds, pxPerSec) {
     secondsStr = _formatSecondsWithThreeDecimals(secondsStr);
   } else {
     secondsStr = seconds.toFixed(2);
-    return secondsStr;
   }
   const decimalPart = secondsStr.split('.')[1];
 

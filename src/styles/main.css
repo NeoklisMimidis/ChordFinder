@@ -285,8 +285,12 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 
 #center-player-controls {
   display: flex;
-  gap: 2em;
-  margin-left: 5%;
+  gap: 1.8em;
+  margin-left: 6%;
+}
+
+.repeat-enabled {
+  color: Teal;
 }
 
 .fa-play:hover {
