@@ -284,9 +284,13 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 }
 
 #center-player-controls {
-  display: flex;
   gap: 1.8em;
   margin-left: 6%;
+}
+
+#right-player-controls {
+  gap: 0.2em;
+  margin-right: 1.1%;
 }
 
 .repeat-enabled {

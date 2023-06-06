@@ -322,7 +322,6 @@ function setVolumeWithSlider(volumeValue) {
 function keyboardPlayerEvents(event) {
   if (isModalActive) return; // If the modal is active, don't execute the event listener
   const key = event.code;
-  console.log(key);
   if (key === 'Space') {
     event.preventDefault();
     playPause(wavesurfer);

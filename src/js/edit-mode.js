@@ -82,11 +82,11 @@ let chord = {
 export function editModeEvents(wavesurfer) {
   /* Events (for editor) */
 
-  // // Default browsers warning when exiting without saving
-  // window.addEventListener('beforeunload', function (e) {
-  //   if (saveChordsBtn.classList.contains('disabled')) return;
-  //   e.returnValue = '';
-  // });
+  // Default browsers warning when exiting without saving
+  window.addEventListener('beforeunload', function (e) {
+    if (saveChordsBtn.classList.contains('disabled')) return;
+    e.returnValue = '';
+  });
 
   /* --------------------- */
   /* Left controls events */
@@ -160,6 +160,8 @@ export function editModeEvents(wavesurfer) {
   wavesurfer.on('region-in', region => {
     curBeatTime = region.start;
     // console.log(curBeatTime);
+
+    console.log('Tempo:', 60 / (region.end - region.start));
 
     if (!clickTrackState) return;
     // highlight every beat
@@ -921,13 +923,30 @@ function renderModalPrompt(message, jamsFile) {
     const modalPromptMessage = modalPrompt.querySelector('#modalPromptMessage');
 
     modalPromptMessage.innerHTML = message;
-    _updateModalPromptForms(jamsFile);
+
     modalPrompt.classList.add('show');
     modalPrompt.style.display = 'block';
 
     const savePromptBtn = document.getElementById('savePrompt');
     const replacePromptBtn = document.getElementById('replacePrompt');
     const closeModalBtn = document.querySelector('.modal-header .close');
+
+    // - In progress
+    var div = document.getElementById('annotationDescription');
+    div.innerHTML = div.getAttribute('data-placeholder');
+    div.onfocus = function () {
+      if (this.innerHTML.trim() == this.getAttribute('data-placeholder')) {
+        this.innerHTML = '';
+      }
+    };
+    div.onblur = function () {
+      if (this.innerHTML.trim() == '') {
+        this.innerHTML = this.getAttribute('data-placeholder');
+      }
+    };
+    // -
+
+    _updateModalPromptForms(jamsFile);
 
     savePromptBtn.addEventListener('click', function () {
       resolve('save'); // Resolve the promise with the value 'save'
