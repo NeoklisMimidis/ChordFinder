@@ -8,11 +8,11 @@ import {
   resetAudioPlayer,
 } from './audio-player.js';
 import { loadJAMS } from './render-annotations.js';
-import { editModeEvents } from './edit-mode.js';
 import {
   fileSelectHandlers,
   dragDropHandlers,
 } from './components/utilities.js';
+import { variableToEstablishConnection } from './demo_files.js';
 
 // // Disable PARCEL Hot Module Reloading bcs it is buggy with Wavesurfer
 if (module.hot) {
@@ -42,11 +42,10 @@ wavesurfer.on('error', function (error) {
 let cleanState = true;
 // Only execute the following on first load!
 wavesurfer.on('ready', function () {
-  resetAudioPlayer();
+  // resetAudioPlayer();
   if (cleanState === true) {
     try {
-      // Attach the required events for the application
-      editModeEvents(wavesurfer);
+      // Attach the required events for the application ONCE
       audioPlayerEvents(wavesurfer);
       cleanState = false;
 
@@ -58,14 +57,3 @@ wavesurfer.on('ready', function () {
     console.log('Waveform ready! 👍');
   }
 });
-
-// - Start application with Testing files loaded to avoid each time importing them by selecting them
-// Local files (Parcel 2 loading local files requires url: in front)
-// import audioFileURL from 'url:../../demo_files/01_-_I_Saw_Her_Standing_There.wav';
-// import annotationFile from 'url:../../demo_files/01_-_I_Saw_Her_Standing_There.jams';
-
-import audioFileURL from 'url:../../demo_files/test.mp3';
-import annotationFile from 'url:../../demo_files/test.jams';
-
-// loadAudioFile(audioFileURL);
-// loadJAMS(annotationFile);

@@ -127,6 +127,18 @@
               <div class="drag-text">Drop the audio file here!</div>
             </div>
 
+            <div id="waveform-bpm" class="d-none">
+              BPM <span id="tempo-value"></span>
+            </div>
+            <div id="waveform-prev-chord" class="d-none">
+              a
+              <span id="prev-chord-value"></span>
+            </div>
+            <div id="waveform-next-chord" class="d-none">
+              b
+              <span id="next-chord-value"></span>
+            </div>
+
             <div class="player-controls">
               <div id="left-player-controls">
                 <button id="zoom-in-btn" class="no-border no-padding disabled">
@@ -511,13 +523,12 @@
                 <label for="annotationDescription"
                   >Annotation Description:</label
                 >
-                <div
-                  class="form-control"
+                <textarea
+                  class="form-control placeholder-text justified-text"
                   id="annotationDescription"
-                  data-placeholder="Enter annotation description"
-                  contenteditable="true"
-                  style="height: 8em; overflow-y: auto"
-                ></div>
+                  style="height: 5em; overflow-y: auto"
+                  placeholder="Enter annotation description"
+                ></textarea>
               </div>
             </form>
             <div class="modal-footer">

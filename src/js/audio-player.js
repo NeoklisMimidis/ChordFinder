@@ -66,7 +66,7 @@ export function initWavesurfer() {
         showTime: true,
         opacity: 1,
         customShowTimeStyle: {
-          'background-color': '#1996',
+          backgroundColor: '#1996',
           color: '#fff',
           padding: '2px',
           'font-size': '10px',
@@ -97,12 +97,14 @@ export function initWavesurfer() {
 }
 
 export function loadAudioFile(input) {
+  // Configure elements initial state (while loading)
+  _initElementsState();
+  console.log(input);
+  if (input === undefined) return;
+
   // check saved state depending on existing attributes
   const saveChordsBtn = document.querySelector('#save-chords-btn');
   let saveState = saveChordsBtn.classList.contains('disabled');
-
-  // Configure elements initial state (while loading)
-  _initElementsState();
 
   const [fileUrl, file] = loadFile(input);
   console.log(file);
@@ -116,7 +118,7 @@ export function loadAudioFile(input) {
         // User confirmed
         // Load file
         wavesurfer.load(fileUrl);
-        // resetAudioPlayer();
+        resetAudioPlayer();
       })
       .catch(() => {
         // User canceled
@@ -124,7 +126,7 @@ export function loadAudioFile(input) {
   } else {
     // Load file
     wavesurfer.load(fileUrl);
-    // resetAudioPlayer();
+    resetAudioPlayer();
   }
 
   if (file !== undefined) {
@@ -181,6 +183,10 @@ export function audioPlayerEvents(wavesurfer) {
     wavesurfer.params.autoCenter = false;
   });
 
+  waveform.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+  });
+
   // Re-enable autoCenter when user interacts with waveform or minimap
   wavesurfer.on('interaction', function () {
     wavesurfer.params.autoCenter = true;
@@ -196,6 +202,10 @@ export function audioPlayerEvents(wavesurfer) {
 }
 
 export function resetAudioPlayer() {
+  // hide audio importing description
+  document.querySelector('.preface-audio-help').classList.add('d-none');
+  document.querySelector('.preface-annotation-help').classList.remove('d-none');
+
   // enable analyze button
   document.querySelector('#analyze-chords-btn').classList.remove('disabled');
   document.querySelector('#toolbar').classList.remove('d-none');
@@ -364,7 +374,49 @@ function keyboardPlayerEvents(event) {
     zoomOut();
   } else if (key === 'KeyR') {
     repeat();
+  } else {
+    //TODO remove just now for testing
+    let waveformElement = document.getElementById('waveform');
+    let style = window.getComputedStyle(waveformElement);
+    let width = parseInt(style.width, 10);
+    console.log(width);
+    calcParams();
+    displayedWaveformStartEndTime();
   }
+}
+
+function displayedWaveformStartEndTime() {
+  // get the current horizontal scroll offset in pixels
+  const scrollWidthStart = wavesurfer.drawer.getScrollX();
+
+  // get the visible width of the parent container in pixels
+  const parentWidth = wavesurfer.drawer.getWidth();
+
+  // calculate the horizontal scroll offset at the end of the visible area
+  const scrollWidthEnd = scrollWidthStart + parentWidth;
+
+  // calculate the amount of time that each pixel in the waveform represents
+  const timePerPixel = wavesurfer.getDuration() / wavesurfer.drawer.width;
+
+  // calculate the start and end times of the audio portion currently displayed in the view
+  const startTime = timePerPixel * scrollWidthStart;
+  const endTime = timePerPixel * scrollWidthEnd;
+
+  console.log('Start time: ' + startTime);
+  console.log('End time: ' + endTime);
+
+  return [startTime, endTime];
+}
+
+function bringToFrontWavesurferCursor() {
+  // cursor line
+  const cursor = document.querySelector('#waveform > wave > wave');
+  cursor.style.zIndex = 6;
+  // cursor duration text
+  const cursorCurrentTimeText = document.querySelector(
+    '#waveform > wave > showtitle'
+  );
+  cursorCurrentTimeText.style.zIndex = 6;
 }
 
 function _initElementsState() {
@@ -373,13 +425,15 @@ function _initElementsState() {
     wavesurfer.markers.markers[0].el.singleton.destroy();
   }
 
-  // Reset markers,regions & controls
+  // show preface audio help instructions
+  document.querySelector('.preface-audio-help').classList.remove('d-none');
+
+  // Reset markers,regions & waveform
   wavesurfer.clearMarkers();
   wavesurfer.clearRegions();
+  wavesurfer.empty();
 
   // Edit options controls
-  document.querySelector('.preface-audio-help').classList.add('d-none');
-  document.querySelector('.preface-annotation-help').classList.remove('d-none');
   document.querySelector('#toolbar').classList.add('d-none');
   document.querySelector('#left-toolbar-controls').classList.add('d-none');
   document.querySelector('#center-toolbar-controls').classList.add('d-none');
@@ -513,4 +567,34 @@ function pageTurnPlayback(currentTime) {
     // wavesurfer.params.autoCenter = true;
     wavesurfer.seekAndCenter(progress);
   }
+}
+
+function calcParams() {
+  let totalAudioDuration = wavesurfer.getDuration();
+
+  // nominalWidth is the total width in pixes of the reference audio
+  let nominalWidth = Math.round(
+    totalAudioDuration *
+      wavesurfer.params.minPxPerSec *
+      wavesurfer.params.pixelRatio
+  );
+
+  // Parent width can be interpreted as the actual displayed width in pixels
+  let parentWidth = wavesurfer.drawer.getWidth();
+
+  // console.log('totalAudioDurationInSeconds:', totalAudioDuration);
+  // console.log('nominalWidthInPixels:', nominalWidth);
+  // console.log('parentWidthInPixels:', parentWidth);
+
+  let pageTurnPosition = parentWidth * (3 / 4);
+  // console.log(pageTurnPosition);
+
+  console.log(`totalAudioDuration:${totalAudioDuration},
+  nominalWidth:${nominalWidth},
+  parentWidth:${parentWidth},
+  wavesurfer.drawer.width:${wavesurfer.drawer.width},
+  ---------------------`);
+  console.log(wavesurfer);
+  console.log('  ---------------------');
+  console.log(wavesurfer.drawer);
 }

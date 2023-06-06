@@ -82,11 +82,11 @@ let chord = {
 export function editModeEvents(wavesurfer) {
   /* Events (for editor) */
 
-  // Default browsers warning when exiting without saving
-  window.addEventListener('beforeunload', function (e) {
-    if (saveChordsBtn.classList.contains('disabled')) return;
-    e.returnValue = '';
-  });
+  // // Default browsers warning when exiting without saving
+  // window.addEventListener('beforeunload', function (e) {
+  //   if (saveChordsBtn.classList.contains('disabled')) return;
+  //   e.returnValue = '';
+  // });
 
   /* --------------------- */
   /* Left controls events */
@@ -106,12 +106,11 @@ export function editModeEvents(wavesurfer) {
   const markers = wavesurfer.markers.markers;
   markers.forEach(marker => {
     // (HOW to add a custom event that is not in the library)
-    marker.el.addEventListener('click', event => {
+    marker.el.addEventListener('mousedown', event => {
       const absoluteDifference = Math.abs(
         curBeatTime - wavesurfer.getCurrentTime()
       );
       closeBeats = absoluteDifference <= 0.5;
-      console.log(marker.time);
 
       if (snapOnBeatsState) {
         if (editState && wavesurfer.isPlaying()) {
@@ -160,8 +159,6 @@ export function editModeEvents(wavesurfer) {
   wavesurfer.on('region-in', region => {
     curBeatTime = region.start;
     // console.log(curBeatTime);
-
-    console.log('Tempo:', 60 / (region.end - region.start));
 
     if (!clickTrackState) return;
     // highlight every beat
@@ -224,7 +221,10 @@ export function editModeEvents(wavesurfer) {
   wavesurfer.on('region-dblclick', addBeatAndChord);
 
   // Edit beat onDrag -- only for styling || marker-drop change the beat
-  wavesurfer.on('marker-drag', editBeat);
+  // wavesurfer.on('marker-drag', editBeat);
+  wavesurfer.on('marker-drag', function (marker, e) {
+    editBeat(marker, e);
+  });
   wavesurfer.on('marker-drop', editBeatTiming);
 
   // Remove marker onRightClick (== remove chord AND beat at position)
@@ -289,6 +289,69 @@ export function editModeEvents(wavesurfer) {
     });
 
   console.log('Event listeners for EDIT MODE ready! ⚡');
+
+  //  Calculate tempo once in the start
+  calculateTempo(wavesurfer.markers.markers[0].duration);
+  // ..and now calculate beat for every region
+  wavesurfer.on('region-in', region => {
+    // console.log('Tempo:', 60 / (region.end - region.start));
+    const beatDuration = region.end - region.start;
+    calculateTempo(beatDuration);
+  });
+
+  // let
+  wavesurfer.on('region-in', region => {
+    const prevChordValue = document.getElementById('prev-chord-value');
+    const nextChordValue = document.getElementById('next-chord-value');
+
+    console.log(region);
+    console.log(wavesurfer.markers.markers);
+    displayedWaveformStartEndTime();
+    prevChordValue.textContent = '1';
+    nextChordValue.textContent = '2';
+  });
+}
+
+function displayedWaveformStartEndTime() {
+  // get the current horizontal scroll offset in pixels
+  const scrollWidthStart = wavesurfer.drawer.getScrollX();
+
+  // get the visible width of the parent container in pixels
+  const parentWidth = wavesurfer.drawer.getWidth();
+
+  // calculate the horizontal scroll offset at the end of the visible area
+  const scrollWidthEnd = scrollWidthStart + parentWidth;
+
+  // calculate the amount of time that each pixel in the waveform represents
+  const timePerPixel = wavesurfer.getDuration() / wavesurfer.drawer.width;
+
+  // calculate the start and end times of the audio portion currently displayed in the view
+  const startTime = timePerPixel * scrollWidthStart;
+  const endTime = timePerPixel * scrollWidthEnd;
+
+  console.log('Start time: ' + startTime);
+  console.log('End time: ' + endTime);
+
+  return [startTime, endTime];
+}
+
+//  Just for now an easy to calculate tempo solution
+function calculateTempo(beatDuration) {
+  let tempo = 60 / beatDuration;
+  tempo = Math.floor(tempo);
+
+  // impose a lower and upper limit to the tempo
+  const minTempo = 30;
+  const maxTempo = 248;
+
+  if (tempo < minTempo) {
+    tempo = minTempo;
+  } else if (tempo > maxTempo) {
+    tempo = maxTempo;
+  }
+
+  const tempoValue = document.getElementById('tempo-value');
+  tempoValue.textContent = tempo;
 }
 
 //////
@@ -418,14 +481,13 @@ function editBeat(marker) {
   if (marker.time === 0) return;
   console.log('dragged!!!', marker);
 
-  // disableAnnotationList();
+  marker.el.singleton.disable();
+
   _disableAnnotationListAndDeleteAnnotation();
 
   // add color to edited marker line
   const markerLine = marker.el.querySelector('div:nth-child(1)');
   wavesurfer.util.style(markerLine, EDITED_MARKER_STYLE);
-
-  marker.el.singleton.disable();
 }
 
 function editBeatTiming(marker) {
@@ -921,7 +983,6 @@ function renderModalPrompt(message, jamsFile) {
 
     const modalPrompt = document.getElementById('modalPrompt');
     const modalPromptMessage = modalPrompt.querySelector('#modalPromptMessage');
-
     modalPromptMessage.innerHTML = message;
 
     modalPrompt.classList.add('show');
@@ -930,21 +991,6 @@ function renderModalPrompt(message, jamsFile) {
     const savePromptBtn = document.getElementById('savePrompt');
     const replacePromptBtn = document.getElementById('replacePrompt');
     const closeModalBtn = document.querySelector('.modal-header .close');
-
-    // - In progress
-    var div = document.getElementById('annotationDescription');
-    div.innerHTML = div.getAttribute('data-placeholder');
-    div.onfocus = function () {
-      if (this.innerHTML.trim() == this.getAttribute('data-placeholder')) {
-        this.innerHTML = '';
-      }
-    };
-    div.onblur = function () {
-      if (this.innerHTML.trim() == '') {
-        this.innerHTML = this.getAttribute('data-placeholder');
-      }
-    };
-    // -
 
     _updateModalPromptForms(jamsFile);
 
@@ -996,6 +1042,13 @@ function _updateModalPromptForms(jamsFile) {
   annotationDataSourceInput.value = dataSourceListSelected;
 
   annotationDescriptionInput.innerHTML = selected.sandbox.description;
+
+  // check whether annotationDescriptionInput is empty or not
+  if (annotationDescriptionInput.textContent.trim() === '') {
+    annotationDescriptionInput.classList.add('placeholder-text');
+  } else {
+    annotationDescriptionInput.classList.remove('placeholder-text');
+  }
 }
 
 // -  Snap Beats & Click Track

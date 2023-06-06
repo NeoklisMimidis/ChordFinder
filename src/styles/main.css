@@ -145,6 +145,10 @@ h1 {
   white-space: pre-wrap;
 }
 
+.justified-text {
+  text-align: justify;
+}
+
 #toolbar .no-border:hover {
   color: var(--color-highlight--5);
 }
@@ -221,6 +225,37 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 
 #waveform > minimap {
   background-color: var(--color-waveform-background--2);
+}
+
+#waveform-bpm {
+  font-size: 95%;
+  position: absolute;
+  right: 9rem;
+  transform: translateY(-300%);
+  padding: 0.15em;
+  border-radius: 4px;
+  box-shadow: 1px 1px 2px var(--color-dark--2);
+  background-color: var(--color-light--2);
+  z-index: 5;
+}
+
+#waveform-prev-chord,
+#waveform-next-chord {
+  font-size: 95%;
+  position: absolute;
+  transform: translateY(-550%);
+  padding: 0.15em;
+  border-radius: 4px;
+  box-shadow: 1px 1px 2px var(--color-dark--2);
+  background-color: var(--color-light--2);
+  z-index: 5;
+}
+
+#waveform-prev-chord {
+  left: 1rem;
+}
+#waveform-next-chord {
+  right: 8.5rem;
 }
 
 /*  REGIONS  */

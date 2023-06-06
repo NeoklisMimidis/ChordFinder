@@ -9,6 +9,7 @@ import {
   deleteAnnotationBtn,
   resetToolbar,
 } from './edit-mode.js';
+import { editModeEvents } from './edit-mode.js';
 
 import { variations, accidentals, chordColor } from './components/mappings.js';
 import { createTippySingleton } from './components/tooltips.js';
@@ -23,8 +24,10 @@ import {
 } from './config.js';
 
 export let jamsFile;
+let cleanState = true;
 
 export function loadJAMS(input) {
+  if (input === undefined) return;
   console.log('loadJams() input:', input);
 
   const [fileUrl, file] = loadFile(input);
@@ -48,6 +51,9 @@ export function loadJAMS(input) {
       // Render first annotation
       annotatedChordsAtBeatsData = selectedAnnotationData(jamsFile);
       renderAnnotations(annotatedChordsAtBeatsData);
+
+      if (cleanState) editModeEvents(wavesurfer);
+      cleanState = false;
     })
     .catch(error => {
       // Handle the error from any part of the promise chain
