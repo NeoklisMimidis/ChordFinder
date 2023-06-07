@@ -63,31 +63,31 @@ function loadFilesInOrder(audioFileURL, annotationFile) {
 // add an event listener that calls the appropriate functions when an option is selected
 selectElement.addEventListener('change', event => {
   const selectedOption = event.target.value;
-  const minimap = document.querySelector('minimap');
+  // const minimap = document.querySelector('minimap');
 
   const fileName = document.querySelector('#audio-file-name');
   if (selectedOption === '1') {
     loadFilesInOrder(audioFileURL1, annotationFile1);
     fileName.textContent = fileNames[1];
-    minimap.classList.remove('d-none');
+    // minimap.classList.remove('d-none');
   } else if (selectedOption === '2') {
     loadFilesInOrder(audioFileURL2, annotationFile2);
     fileName.textContent = fileNames[2];
-    minimap.classList.remove('d-none');
+    // minimap.classList.remove('d-none');
   } else if (selectedOption === '3') {
     loadFilesInOrder(audioFileURL3, annotationFile3);
     fileName.textContent = fileNames[3];
-    minimap.classList.remove('d-none');
+    // minimap.classList.remove('d-none');
   } else if (selectedOption === '4') {
     loadFilesInOrder(audioFileURL4, annotationFile4);
     fileName.textContent = fileNames[4];
-    minimap.classList.remove('d-none');
+    // minimap.classList.remove('d-none');
   } else if (selectedOption === '0') {
     // Optionally, you can handle the 'None' case differently here
     loadAudioFile();
     loadJAMS();
 
-    minimap.classList.add('d-none');
+    // minimap.classList.add('d-none');
 
     fileName.textContent = 'No file selected';
   }
