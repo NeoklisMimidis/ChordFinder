@@ -15,6 +15,7 @@ import { loadFile } from './components/utilities.js';
 
 /* Elements */
 const waveform = document.querySelector('#waveform');
+const minimap = document.querySelector('#waveform > minimap');
 const zoomInBtn = document.querySelector('#zoom-in-btn');
 const zoomOutBtn = document.querySelector('#zoom-out-btn');
 
@@ -465,6 +466,11 @@ function _initElementsState() {
 
   // Right controls player
   volumeSlider.classList.add('disabled');
+
+  // hide bpm, prev chord, next chord
+  document.querySelector('#waveform-bpm').classList.add('d-none');
+  document.querySelector('#waveform-prev-chord').classList.add('d-none');
+  document.querySelector('#waveform-next-chord').classList.add('d-none');
 
   console.log('_initElementsState is complete 😁');
 }

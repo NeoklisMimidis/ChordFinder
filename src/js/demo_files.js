@@ -36,15 +36,6 @@ for (let i = 0; i < fileNames.length; i++) {
   selectElement.appendChild(optionElement);
 }
 
-function loadFilesInOrder2(audioFileURL, annotationFile) {
-  loadAudioFile(audioFileURL); // Call loadAudioFile immediately
-
-  // Delay the execution of loadJAMS by 2 seconds
-  setTimeout(() => {
-    loadJAMS(annotationFile);
-  }, 2000);
-}
-
 function loadFilesInOrder(audioFileURL, annotationFile) {
   new Promise((resolve, reject) => {
     try {
@@ -72,28 +63,38 @@ function loadFilesInOrder(audioFileURL, annotationFile) {
 // add an event listener that calls the appropriate functions when an option is selected
 selectElement.addEventListener('change', event => {
   const selectedOption = event.target.value;
+  const minimap = document.querySelector('minimap');
 
   const fileName = document.querySelector('#audio-file-name');
   if (selectedOption === '1') {
     loadFilesInOrder(audioFileURL1, annotationFile1);
     fileName.textContent = fileNames[1];
+    minimap.classList.remove('d-none');
   } else if (selectedOption === '2') {
     loadFilesInOrder(audioFileURL2, annotationFile2);
     fileName.textContent = fileNames[2];
+    minimap.classList.remove('d-none');
   } else if (selectedOption === '3') {
     loadFilesInOrder(audioFileURL3, annotationFile3);
     fileName.textContent = fileNames[3];
+    minimap.classList.remove('d-none');
   } else if (selectedOption === '4') {
     loadFilesInOrder(audioFileURL4, annotationFile4);
     fileName.textContent = fileNames[4];
+    minimap.classList.remove('d-none');
   } else if (selectedOption === '0') {
     // Optionally, you can handle the 'None' case differently here
     loadAudioFile();
     loadJAMS();
+
+    minimap.classList.add('d-none');
+
     fileName.textContent = 'No file selected';
   }
 });
 
 // append the select element to the body of the document
-document.body.appendChild(selectElement);
+// document.body.appendChild(selectElement);
 // */
+const demoFiles = document.querySelector('#demo-files-list');
+demoFiles.appendChild(selectElement);

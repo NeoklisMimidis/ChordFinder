@@ -305,11 +305,46 @@ export function editModeEvents(wavesurfer) {
     const nextChordValue = document.getElementById('next-chord-value');
 
     console.log(region);
-    console.log(wavesurfer.markers.markers);
-    displayedWaveformStartEndTime();
+    checkMarkers();
+    // console.log(wavesurfer.markers.markers);
+    // displayedWaveformStartEndTime();
+
     prevChordValue.textContent = '1';
     nextChordValue.textContent = '2';
   });
+}
+
+// - TODO in progress
+// This function checks if a given time range overlaps with a given visible time range
+function overlapsWithVisibleRange(start, end, visibleStart, visibleEnd) {
+  return start < visibleEnd && end > visibleStart;
+}
+
+function checkMarkers() {
+  var currentTime = wavesurfer.getCurrentTime();
+
+  // Call your function to get the currently visible time range
+  const [visibleStartTime, visibleEndTime] = displayedWaveformStartEndTime();
+
+  // Assuming printWaveformTimes sets global variables startTime and endTime
+  // var visibleStartTime = startTime;
+  // var visibleEndTime = endTime;
+
+  for (var marker of wavesurfer.markers.markers) {
+    var markerEndTime = marker.time + marker.duration;
+    var isActive = marker.time <= currentTime && markerEndTime >= currentTime;
+    var isVisible = overlapsWithVisibleRange(
+      marker.time,
+      markerEndTime,
+      visibleStartTime,
+      visibleEndTime
+    );
+    // console.log('isActive', isActive);
+    // console.log('isVisible', isVisible);
+    if (isActive && !isVisible) {
+      console.log('✅ Marker is active but not visible: ', marker);
+    }
+  }
 }
 
 function displayedWaveformStartEndTime() {
@@ -329,8 +364,8 @@ function displayedWaveformStartEndTime() {
   const startTime = timePerPixel * scrollWidthStart;
   const endTime = timePerPixel * scrollWidthEnd;
 
-  console.log('Start time: ' + startTime);
-  console.log('End time: ' + endTime);
+  // console.log('Start time: ' + startTime);
+  // console.log('End time: ' + endTime);
 
   return [startTime, endTime];
 }
@@ -385,6 +420,13 @@ export function resetToolbar() {
 
   // removing editing color
   document.querySelector('#toolbar').classList.remove('editing-on');
+
+  // display bpm, prev chord, next chord
+  document.querySelector('#waveform-bpm').classList.remove('d-none');
+
+  // -TODO in progress
+  // document.querySelector('#waveform-prev-chord').classList.remove('d-none');
+  // document.querySelector('#waveform-next-chord').classList.remove('d-none');
 
   // Tippy (tooltips) related functionality reset BUG why it doesnt remove?
   editModeTools.classList.add('pointer-events-disabled');
