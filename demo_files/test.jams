@@ -1,483 +1,423 @@
 {
-  "annotations": [
+  "annotations": [ 
     {
       "annotation_metadata": {
         "curator": {
-          "name": "",
+          "name": "test chord variations",
           "email": ""
         },
         "annotator": {},
         "version": "",
         "corpus": "",
-        "annotation_tools": "MADMOM 0.16.1",
+        "annotation_tools": "ChordFinder",
         "annotation_rules": "",
         "validation": "",
-        "data_source": "program"
+        "data_source": "user"
       },
       "namespace": "chord",
       "data": [
-                {
-"time": 0.5,
-"duration": 0.5,
-"value": "X",
-"confidence": null
-},
         {
-"time": 1,
-"duration": 0.5,
-"value": "A:maj",
-"confidence": null
-},
-
-{
-"time": 1.5,
-"duration": 0.5,
-"value": "A:maj7",
-"confidence": null
-},
-
-{
-"time": 2,
-"duration": 0.5,
-"value": "A:maj9",
-"confidence": null
-},
-
-{
-"time": 2.5,
-"duration": 0.5,
-"value": "A:maj13",
-"confidence": null
-},
-
-{
-"time": 3,
-"duration": 0.5,
-"value": "A:min",
-"confidence": null
-},
-
-{
-"time": 3.5,
-"duration": 0.5,
-"value": "A:min7",
-"confidence": null
-},
-
-{
-"time": 4,
-"duration": 0.5,
-"value": "A:minmaj7",
-"confidence": null
-},
-
-{
-"time": 4.5,
-"duration": 0.5,
-"value": "A:min9",
-"confidence": null
-},
-
-{
-"time": 5,
-"duration": 0.5,
-"value": "A:minmaj7(9)",
-"confidence": null
-},
-
-{
-"time": 5.5,
-"duration": 0.5,
-"value": "A:min9(11)",
-"confidence": null
-},
-
-{
-"time": 6,
-"duration": 0.5,
-"value": "A:min9(11,13)",
-"confidence": null
-},
-
-{
-"time": 6.5,
-"duration": 0.5,
-"value": "A:aug",
-"confidence": null
-},
-
-{
-"time": 7,
-"duration": 0.5,
-"value": "A:dim",
-"confidence": null
-},
-
-{
-"time": 7.5,
-"duration": 0.5,
-"value": "A:dim7",
-"confidence": null
-},
-
-{
-"time": 8,
-"duration": 0.5,
-"value": "A:hdim7",
-"confidence": null
-},
-
-{
-"time": 8.5,
-"duration": 0.5,
-"value": "A:hdim7(b9)",
-"confidence": null
-},
-
-{
-"time": 9,
-"duration": 0.5,
-"value": "A:hdim7(b9,11)",
-"confidence": null
-},
-
-{
-"time": 9.5,
-"duration": 0.5,
-"value": "A:7",
-"confidence": null
-},
-
-{
-"time": 10,
-"duration": 0.5,
-"value": "A:9",
-"confidence": null
-},
-
-{
-"time": 10.5,
-"duration": 0.5,
-"value": "A:9(11)",
-"confidence": null
-},
-
-{
-"time": 11,
-"duration": 0.5,
-"value": "A:9(11,13)",
-"confidence": null
-},
-
-{
-"time": 11.5,
-"duration": 0.5,
-"value": "A:maj6",
-"confidence": null
-},
-
-{
-"time": 12,
-"duration": 0.5,
-"value": "A:maj6(9)",
-"confidence": null
-},
-
-{
-"time": 12.5,
-"duration": 0.5,
-"value": "A:maj(9)",
-"confidence": null
-},
-
-{
-"time": 13,
-"duration": 0.5,
-"value": "A:min6",
-"confidence": null
-},
-
-{
-"time": 13.5,
-"duration": 0.5,
-"value": "A:min(b6)",
-"confidence": null
-},
-
-{
-"time": 14,
-"duration": 0.5,
-"value": "A:min6(9)",
-"confidence": null
-},
-
-{
-"time": 14.5,
-"duration": 0.5,
-"value": "A:min(9)",
-"confidence": null
-},
-
-{
-"time": 15,
-"duration": 0.5,
-"value": "A:sus2",
-"confidence": null
-},
-
-{
-"time": 15.5,
-"duration": 0.5,
-"value": "A:sus4",
-"confidence": null
-},
-
-{
-"time": 16,
-"duration": 0.5,
-"value": "A:sus4(7b,13)",
-"confidence": null
-},
-
-{
-"time": 16.5,
-"duration": 0.5,
-"value": "A:sus4(b7)",
-"confidence": null
-},
-
-{
-"time": 17,
-"duration": 0.5,
-"value": "A:sus4(b7,9)",
-"confidence": null
-},
-
-{
-"time": 17.5,
-"duration": 0.5,
-"value": "A:sus4(b7,9,13)",
-"confidence": null
-},
-
-{
-"time": 18,
-"duration": 0.5,
-"value": "A:7(b7,#5,b9,#9)",
-"confidence": null
-},
-
-{
-"time": 18.5,
-"duration": 0.5,
-"value": "A:7(b5)",
-"confidence": null
-},
-
-{
-"time": 19,
-"duration": 0.5,
-"value": "A:7(#5)",
-"confidence": null
-},
-
-{
-"time": 19.5,
-"duration": 0.5,
-"value": "A:7(b5,b9)",
-"confidence": null
-},
-
-{
-"time": 20,
-"duration": 0.5,
-"value": "A:7(b9,#5)",
-"confidence": null
-},
-
-{
-"time": 20.5,
-"duration": 0.5,
-"value": "A:7(b5,#9)",
-"confidence": null
-},
-
-{
-"time": 21,
-"duration": 0.5,
-"value": "A:7(#5,#9)",
-"confidence": null
-},
-
-{
-"time": 21.5,
-"duration": 0.5,
-"value": "A:7(b9)",
-"confidence": null
-},
-
-{
-"time": 22,
-"duration": 0.5,
-"value": "A:7(#9)",
-"confidence": null
-},
-
-{
-"time": 22.5,
-"duration": 0.5,
-"value": "A:7(b9,#9)",
-"confidence": null
-},
-
-{
-"time": 23,
-"duration": 0.5,
-"value": "A:7(#11)",
-"confidence": null
-},
-
-{
-"time": 23.5,
-"duration": 0.5,
-"value": "A:7(#9,#11)",
-"confidence": null
-},
-
-{
-"time": 24,
-"duration": 0.5,
-"value": "A:7(b9,#11)",
-"confidence": null
-},
-
-{
-"time": 24.5,
-"duration": 0.5,
-"value": "A:7(b9,b13)",
-"confidence": null
-},
-
-{
-"time": 25,
-"duration": 0.5,
-"value": "A:7(#9,b13)",
-"confidence": null
-},
-
-{
-"time": 25.5,
-"duration": 0.5,
-"value": "A:7(b13)",
-"confidence": null
-},
-
-{
-"time": 26,
-"duration": 0.5,
-"value": "A:5",
-"confidence": null
-},
-
-{
-"time": 26.5,
-"duration": 0.5,
-"value": "A:min#5",
-"confidence": null
-},
-
-{
-"time": 27,
-"duration": 0.5,
-"value": "A:sus4(b9)",
-"confidence": null
-},
-
-{
-"time": 27.5,
-"duration": 0.5,
-"value": "A:sus4(b13)",
-"confidence": null
-},
-
-{
-"time": 28,
-"duration": 0.5,
-"value": "A:maj7(b5)",
-"confidence": null
-},
-
-{
-"time": 28.5,
-"duration": 0.5,
-"value": "A:maj7(#5)",
-"confidence": null
-},
-
-{
-"time": 29,
-"duration": 0.5,
-"value": "A:maj7(#11)",
-"confidence": null
-},
-
-{
-"time": 29.5,
-"duration": 0.5,
-"value": "A:maj9(#11)",
-"confidence": null
-},
-
-{
-"time": 30,
-"duration": 0.5,
-"value": "A:9(b5)",
-"confidence": null
-},
-
-{
-"time": 30.5,
-"duration": 0.5,
-"value": "A:9(#5)",
-"confidence": null
-},
-
-{
-"time": 31,
-"duration": 0.5,
-"value": "A:9(#11)",
-"confidence": null
-},
-
-{
-"time": 31.5,
-"duration": 0.5,
-"value": "A:9(11,b13)",
-"confidence": null
-},
-
-{
-"time": 32,
-"duration": 0.5,
-"value": "A:b9(11,13)",
-"confidence": null
-},
-
-{
-"time": 32.5,
-"duration": 0.5,
-"value": "A:#9(11,13)",
-"confidence": null
-},
-
-{
-"time": 33,
-"duration": 0.5,
-"value": "A:9(#11,13)",
-"confidence": null
-}
- 
-
+          "time": 0,
+          "duration": 0.5,
+          "value": "N",
+          "confidence": null
+        },
+        {
+          "time": 0.5,
+          "duration": 0.5,
+          "value": "X",
+          "confidence": null
+        },
+        {
+          "time": 1,
+          "duration": 0.5,
+          "value": "A:maj",
+          "confidence": null
+        },
+        {
+          "time": 1.5,
+          "duration": 0.5,
+          "value": "A:maj7",
+          "confidence": null
+        },
+        {
+          "time": 2,
+          "duration": 0.5,
+          "value": "A:maj9",
+          "confidence": null
+        },
+        {
+          "time": 2.5,
+          "duration": 0.5,
+          "value": "A:maj13",
+          "confidence": null
+        },
+        {
+          "time": 3,
+          "duration": 0.5,
+          "value": "A:min",
+          "confidence": null
+        },
+        {
+          "time": 3.5,
+          "duration": 0.5,
+          "value": "A:min7",
+          "confidence": null
+        },
+        {
+          "time": 4,
+          "duration": 0.5,
+          "value": "A:minmaj7",
+          "confidence": null
+        },
+        {
+          "time": 4.5,
+          "duration": 0.5,
+          "value": "A:min9",
+          "confidence": null
+        },
+        {
+          "time": 5,
+          "duration": 0.5,
+          "value": "A:minmaj7(9)",
+          "confidence": null
+        },
+        {
+          "time": 5.5,
+          "duration": 0.5,
+          "value": "A:min9(11)",
+          "confidence": null
+        },
+        {
+          "time": 6,
+          "duration": 0.5,
+          "value": "A:min9(11,13)",
+          "confidence": null
+        },
+        {
+          "time": 6.5,
+          "duration": 0.5,
+          "value": "A:aug",
+          "confidence": null
+        },
+        {
+          "time": 7,
+          "duration": 0.5,
+          "value": "A:dim",
+          "confidence": null
+        },
+        {
+          "time": 7.5,
+          "duration": 0.5,
+          "value": "A:dim7",
+          "confidence": null
+        },
+        {
+          "time": 8,
+          "duration": 0.5,
+          "value": "A:hdim7",
+          "confidence": null
+        },
+        {
+          "time": 8.5,
+          "duration": 0.5,
+          "value": "A:hdim7(b9)",
+          "confidence": null
+        },
+        {
+          "time": 9,
+          "duration": 0.5,
+          "value": "A:hdim7(b9,11)",
+          "confidence": null
+        },
+        {
+          "time": 9.5,
+          "duration": 0.5,
+          "value": "A:7",
+          "confidence": null
+        },
+        {
+          "time": 10,
+          "duration": 0.5,
+          "value": "A:9",
+          "confidence": null
+        },
+        {
+          "time": 10.5,
+          "duration": 0.5,
+          "value": "A:9(11)",
+          "confidence": null
+        },
+        {
+          "time": 11,
+          "duration": 0.5,
+          "value": "A:9(11,13)",
+          "confidence": null
+        },
+        {
+          "time": 11.5,
+          "duration": 0.5,
+          "value": "A:maj6",
+          "confidence": null
+        },
+        {
+          "time": 12,
+          "duration": 0.5,
+          "value": "A:maj6(9)",
+          "confidence": null
+        },
+        {
+          "time": 12.5,
+          "duration": 0.5,
+          "value": "A:maj(9)",
+          "confidence": null
+        },
+        {
+          "time": 13,
+          "duration": 0.5,
+          "value": "A:min6",
+          "confidence": null
+        },
+        {
+          "time": 13.5,
+          "duration": 0.5,
+          "value": "A:min(b6)",
+          "confidence": null
+        },
+        {
+          "time": 14,
+          "duration": 0.5,
+          "value": "A:min6(9)",
+          "confidence": null
+        },
+        {
+          "time": 14.5,
+          "duration": 0.5,
+          "value": "A:min(9)",
+          "confidence": null
+        },
+        {
+          "time": 15,
+          "duration": 0.5,
+          "value": "A:sus2",
+          "confidence": null
+        },
+        {
+          "time": 15.5,
+          "duration": 0.5,
+          "value": "A:sus4",
+          "confidence": null
+        },
+        {
+          "time": 16,
+          "duration": 0.5,
+          "value": "A:sus4(7b,13)",
+          "confidence": null
+        },
+        {
+          "time": 16.5,
+          "duration": 0.5,
+          "value": "A:sus4(b7)",
+          "confidence": null
+        },
+        {
+          "time": 17,
+          "duration": 0.5,
+          "value": "A:sus4(b7,9)",
+          "confidence": null
+        },
+        {
+          "time": 17.5,
+          "duration": 0.5,
+          "value": "A:sus4(b7,9,13)",
+          "confidence": null
+        },
+        {
+          "time": 18,
+          "duration": 0.5,
+          "value": "A:7(b7,#5,b9,#9)",
+          "confidence": null
+        },
+        {
+          "time": 18.5,
+          "duration": 0.5,
+          "value": "A:7(b5)",
+          "confidence": null
+        },
+        {
+          "time": 19,
+          "duration": 0.5,
+          "value": "A:7(#5)",
+          "confidence": null
+        },
+        {
+          "time": 19.5,
+          "duration": 0.5,
+          "value": "A:7(b5,b9)",
+          "confidence": null
+        },
+        {
+          "time": 20,
+          "duration": 0.5,
+          "value": "A:7(b9,#5)",
+          "confidence": null
+        },
+        {
+          "time": 20.5,
+          "duration": 0.5,
+          "value": "A:7(b5,#9)",
+          "confidence": null
+        },
+        {
+          "time": 21,
+          "duration": 0.5,
+          "value": "A:7(#5,#9)",
+          "confidence": null
+        },
+        {
+          "time": 21.5,
+          "duration": 0.5,
+          "value": "A:7(b9)",
+          "confidence": null
+        },
+        {
+          "time": 22,
+          "duration": 0.5,
+          "value": "A:7(#9)",
+          "confidence": null
+        },
+        {
+          "time": 22.5,
+          "duration": 0.5,
+          "value": "A:7(b9,#9)",
+          "confidence": null
+        },
+        {
+          "time": 23,
+          "duration": 0.5,
+          "value": "A:7(#11)",
+          "confidence": null
+        },
+        {
+          "time": 23.5,
+          "duration": 0.5,
+          "value": "A:7(#9,#11)",
+          "confidence": null
+        },
+        {
+          "time": 24,
+          "duration": 0.5,
+          "value": "A:7(b9,#11)",
+          "confidence": null
+        },
+        {
+          "time": 24.5,
+          "duration": 0.5,
+          "value": "A:7(b9,b13)",
+          "confidence": null
+        },
+        {
+          "time": 25,
+          "duration": 0.5,
+          "value": "A:7(#9,b13)",
+          "confidence": null
+        },
+        {
+          "time": 25.5,
+          "duration": 0.5,
+          "value": "A:7(b13)",
+          "confidence": null
+        },
+        {
+          "time": 26,
+          "duration": 0.5,
+          "value": "A:5",
+          "confidence": null
+        },
+        {
+          "time": 26.5,
+          "duration": 0.5,
+          "value": "A:min#5",
+          "confidence": null
+        },
+        {
+          "time": 27,
+          "duration": 0.5,
+          "value": "A:sus4(b9)",
+          "confidence": null
+        },
+        {
+          "time": 27.5,
+          "duration": 0.5,
+          "value": "A:sus4(b13)",
+          "confidence": null
+        },
+        {
+          "time": 28,
+          "duration": 0.5,
+          "value": "A:maj7(b5)",
+          "confidence": null
+        },
+        {
+          "time": 28.5,
+          "duration": 0.5,
+          "value": "A:maj7(#5)",
+          "confidence": null
+        },
+        {
+          "time": 29,
+          "duration": 0.5,
+          "value": "A:maj7(#11)",
+          "confidence": null
+        },
+        {
+          "time": 29.5,
+          "duration": 0.5,
+          "value": "A:maj9(#11)",
+          "confidence": null
+        },
+        {
+          "time": 30,
+          "duration": 0.5,
+          "value": "A:9(b5)",
+          "confidence": null
+        },
+        {
+          "time": 30.5,
+          "duration": 0.5,
+          "value": "A:9(#5)",
+          "confidence": null
+        },
+        {
+          "time": 31,
+          "duration": 0.5,
+          "value": "A:9(#11)",
+          "confidence": null
+        },
+        {
+          "time": 31.5,
+          "duration": 0.5,
+          "value": "A:9(11,b13)",
+          "confidence": null
+        },
+        {
+          "time": 32,
+          "duration": 0.5,
+          "value": "A:b9(11,13)",
+          "confidence": null
+        },
+        {
+          "time": 32.5,
+          "duration": 0.5,
+          "value": "A:#9(11,13)",
+          "confidence": null
+        },
+        {
+          "time": 33,
+          "duration": 137.397,
+          "value": "A:9(#11,13)",
+          "confidence": null
+        }
       ],
       "sandbox": {
         "description": "test annotation shorthands"
@@ -485,149 +425,255 @@
       "time": 0,
       "duration": null
     },
-
-{
+    {
       "annotation_metadata": {
         "curator": {
-          "name": "Neoklis",
+          "name": "test roots (color)",
           "email": ""
         },
         "annotator": {},
         "version": "",
         "corpus": "",
-        "annotation_tools": "",
+        "annotation_tools": "ChordFinder",
         "annotation_rules": "",
         "validation": "",
         "data_source": "user"
       },
       "namespace": "chord",
       "data": [
-       {
-"time": 0.8,
-"duration": 0.4,
-"value": "B#:maj",
-"confidence": null
-},
-{
-"time": 1.2,
-"duration": 0.4,
-"value": "C:maj",
-"confidence": null
-},
-{
-"time": 1.6,
-"duration": 0.4,
-"value": "C#:maj",
-"confidence": null
-},
-{
-"time": 2,
-"duration": 0.4,
-"value": "Db:maj",
-"confidence": null
-},
-{
-"time": 2.4,
-"duration": 0.4,
-"value": "D:maj",
-"confidence": null
-},
-{
-"time": 2.8,
-"duration": 0.4,
-"value": "D#:maj",
-"confidence": null
-},
-{
-"time": 3.2,
-"duration": 0.4,
-"value": "Eb:maj",
-"confidence": null
-},
-{
-"time": 3.6,
-"duration": 0.4,
-"value": "E:maj",
-"confidence": null
-},
-{
-"time": 4,
-"duration": 0.4,
-"value": "Fb:maj",
-"confidence": null
-},
-{
-"time": 4.4,
-"duration": 0.4,
-"value": "E#:maj",
-"confidence": null
-},
-{
-"time": 4.8,
-"duration": 0.4,
-"value": "F:maj",
-"confidence": null
-},
-{
-"time": 5.2,
-"duration": 0.4,
-"value": "F#:maj",
-"confidence": null
-},
-{
-"time": 5.6,
-"duration": 0.4,
-"value": "Gb:maj",
-"confidence": null
-},
-{
-"time": 6,
-"duration": 0.4,
-"value": "G:maj",
-"confidence": null
-},
-{
-"time": 6.4,
-"duration": 0.4,
-"value": "G#:maj",
-"confidence": null
-},
-{
-"time": 6.8,
-"duration": 0.4,
-"value": "Ab:maj",
-"confidence": null
-},
-{
-"time": 7.2,
-"duration": 0.4,
-"value": "A:maj",
-"confidence": null
-},
-{
-"time": 7.6,
-"duration": 0.4,
-"value": "A#:maj",
-"confidence": null
-},
-{
-"time": 8,
-"duration": 0.4,
-"value": "Bb:maj",
-"confidence": null
-},
-{
-"time": 8.4,
-"duration": 0.4,
-"value": "B:maj",
-"confidence": null
-},
-{
-"time": 8.8,
-"duration": 0.4,
-"value": "Cb:maj",
-"confidence": null
-}
+        {
+          "time": 0,
+          "duration": 0.8,
+          "value": "N",
+          "confidence": null
+        },
+        {
+          "time": 0.8,
+          "duration": 0.4,
+          "value": "B#:maj",
+          "confidence": null
+        },
+        {
+          "time": 1.2,
+          "duration": 0.4,
+          "value": "C:maj",
+          "confidence": null
+        },
+        {
+          "time": 1.6,
+          "duration": 0.4,
+          "value": "C#:maj",
+          "confidence": null
+        },
+        {
+          "time": 2,
+          "duration": 0.4,
+          "value": "Db:maj",
+          "confidence": null
+        },
+        {
+          "time": 2.4,
+          "duration": 0.4,
+          "value": "D:maj",
+          "confidence": null
+        },
+        {
+          "time": 2.8,
+          "duration": 0.4,
+          "value": "D#:maj",
+          "confidence": null
+        },
+        {
+          "time": 3.2,
+          "duration": 0.4,
+          "value": "Eb:maj",
+          "confidence": null
+        },
+        {
+          "time": 3.6,
+          "duration": 0.4,
+          "value": "E:maj",
+          "confidence": null
+        },
+        {
+          "time": 4,
+          "duration": 0.4,
+          "value": "Fb:maj",
+          "confidence": null
+        },
+        {
+          "time": 4.4,
+          "duration": 0.4,
+          "value": "E#:maj",
+          "confidence": null
+        },
+        {
+          "time": 4.8,
+          "duration": 0.4,
+          "value": "F:maj",
+          "confidence": null
+        },
+        {
+          "time": 5.2,
+          "duration": 0.4,
+          "value": "F#:maj",
+          "confidence": null
+        },
+        {
+          "time": 5.6,
+          "duration": 0.4,
+          "value": "Gb:maj",
+          "confidence": null
+        },
+        {
+          "time": 6,
+          "duration": 0.4,
+          "value": "G:maj",
+          "confidence": null
+        },
+        {
+          "time": 6.4,
+          "duration": 0.4,
+          "value": "G#:maj",
+          "confidence": null
+        },
+        {
+          "time": 6.8,
+          "duration": 0.4,
+          "value": "Ab:maj",
+          "confidence": null
+        },
+        {
+          "time": 7.2,
+          "duration": 0.4,
+          "value": "A:maj",
+          "confidence": null
+        },
+        {
+          "time": 7.6,
+          "duration": 0.4,
+          "value": "A#:maj",
+          "confidence": null
+        },
+        {
+          "time": 8,
+          "duration": 0.4,
+          "value": "Bb:maj",
+          "confidence": null
+        },
+        {
+          "time": 8.4,
+          "duration": 0.387,
+          "value": "B:maj",
+          "confidence": null
+        },
+        {
+          "time": 8.786574881787528,
+          "duration": 161.61,
+          "value": "Cb:maj",
+          "confidence": null
+        }
+      ],
+      "sandbox": {
+        "description": "Test roots (colors)"
+      },
+      "time": 0,
+      "duration": null
+    },
+    {
+      "annotation_metadata": {
+        "curator": {
+          "name": "test prev/next chord",
+          "email": ""
+        },
+        "annotator": {},
+        "version": "",
+        "corpus": "",
+        "annotation_tools": "ChordFinder",
+        "annotation_rules": "",
+        "validation": "",
+        "data_source": "user"
+      },
+      "namespace": "chord",
+      "data": [
+        {
+          "time": 0,
+          "duration": 0.8,
+          "value": "N",
+          "confidence": null
+        },
+        {
+          "time": 0.8,
+          "duration": 2.093,
+          "value": "B#:maj",
+          "confidence": null
+        },
+        {
+          "time": 2.8925566556572,
+          "duration": 1.669,
+          "value": "D:maj",
+          "confidence": null
+        },
+        {
+          "time": 4.561424737662642,
+          "duration": 1.563,
+          "value": "E:maj",
+          "confidence": null
+        },
+        {
+          "time": 6.124332941445515,
+          "duration": 1.788,
+          "value": "F:maj",
+          "confidence": null
+        },
+        {
+          "time": 7.912405886451345,
+          "duration": 1.219,
+          "value": "F#:maj",
+          "confidence": null
+        },
+        {
+          "time": 9.130944486010872,
+          "duration": 1.245,
+          "value": "G#:maj",
+          "confidence": null
+        },
+        {
+          "time": 10.375973055126043,
+          "duration": 1.404,
+          "value": "B:maj",
+          "confidence": null
+        },
+        {
+          "time": 11.779941441575065,
+          "duration": 1.243,
+          "value": "B:maj",
+          "confidence": null
+        },
+        {
+          "time": 13.022784070819677,
+          "duration": 3.21,
+          "value": "D:maj",
+          "confidence": null
+        },
+        {
+          "time": 16.23282828243259,
+          "duration": 1.709,
+          "value": "D:maj",
+          "confidence": null
+        },
+        {
+          "time": 17.941431318771492,
+          "duration": 1.377,
+          "value": "D:maj",
+          "confidence": null
+        },
+        {
+          "time": 19.318909735664874,
+          "duration": 151.078,
+          "value": "D:maj",
+          "confidence": null
+        }
       ],
       "sandbox": {
         "description": "Test roots (colors)"
@@ -646,4 +692,3 @@
   },
   "sandbox": {}
 }
-

@@ -107,15 +107,16 @@ export function createAnnotationsList(jamsFile) {
 
 // Return the annotation data of the selected annotation
 export function selectedAnnotationData(jamsFile) {
-  if (annotationList.selectedIndex === 0) {
+  const selectedAnnotation = jamsFile.annotations[annotationList.selectedIndex];
+  const currDataSource = selectedAnnotation.annotation_metadata.data_source;
+
+  if (currDataSource === 'program') {
     deleteAnnotationBtn.classList.add('disabled');
   } else {
     deleteAnnotationBtn.classList.remove('disabled');
   }
 
-  const annotationData =
-    jamsFile.annotations[annotationList.selectedIndex].data;
-
+  const annotationData = selectedAnnotation.data;
   return annotationData;
 }
 

@@ -15,7 +15,7 @@ import annotationFile4 from 'url:../../demo_files/14_-_Tomorrow_Never_Knows.jams
 
 const variableToEstablishConnection = '';
 export { variableToEstablishConnection };
-// /*
+
 // create a new select element
 const selectElement = document.createElement('select');
 
@@ -37,7 +37,11 @@ for (let i = 0; i < fileNames.length; i++) {
 }
 
 function loadFilesInOrder(audioFileURL, annotationFile) {
-  new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
+    // gimmick clear of console
+    console.log('\n'.repeat(20));
+    console.log('---Loading new demo file ✅---');
+
     try {
       loadAudioFile(audioFileURL);
       resolve();
@@ -66,8 +70,13 @@ selectElement.addEventListener('change', event => {
 
   const fileName = document.querySelector('#audio-file-name');
   if (selectedOption === '1') {
-    loadFilesInOrder(audioFileURL1, annotationFile1);
     fileName.textContent = fileNames[1];
+    loadFilesInOrder(audioFileURL1, annotationFile1).then(() => {
+      console.log('⚠️ Start with muted state in test file');
+      setTimeout(() => {
+        document.querySelector('#mute-unmute-btn').click();
+      }, 1000); // 1000 milliseconds = 1 second
+    });
   } else if (selectedOption === '2') {
     loadFilesInOrder(audioFileURL2, annotationFile2);
     fileName.textContent = fileNames[2];
@@ -84,8 +93,5 @@ selectElement.addEventListener('change', event => {
   }
 });
 
-// append the select element to the body of the document
-// document.body.appendChild(selectElement);
-// */
 const demoFiles = document.querySelector('#demo-files-list');
 demoFiles.appendChild(selectElement);

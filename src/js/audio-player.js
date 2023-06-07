@@ -15,7 +15,6 @@ import { loadFile } from './components/utilities.js';
 
 /* Elements */
 const waveform = document.querySelector('#waveform');
-const minimap = document.querySelector('#waveform > minimap');
 const zoomInBtn = document.querySelector('#zoom-in-btn');
 const zoomOutBtn = document.querySelector('#zoom-out-btn');
 
@@ -377,12 +376,8 @@ function keyboardPlayerEvents(event) {
     repeat();
   } else {
     //TODO remove just now for testing
-    let waveformElement = document.getElementById('waveform');
-    let style = window.getComputedStyle(waveformElement);
-    let width = parseInt(style.width, 10);
-    console.log(width);
-    calcParams();
-    displayedWaveformStartEndTime();
+    // calcParams();
+    // displayedWaveformStartEndTime();
   }
 }
 
@@ -576,6 +571,11 @@ function pageTurnPlayback(currentTime) {
 }
 
 function calcParams() {
+  let waveformElement = document.getElementById('waveform');
+  let style = window.getComputedStyle(waveformElement);
+  let width = parseInt(style.width, 10);
+  console.log(width);
+
   let totalAudioDuration = wavesurfer.getDuration();
 
   // nominalWidth is the total width in pixes of the reference audio

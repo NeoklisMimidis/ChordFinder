@@ -304,13 +304,12 @@ export function editModeEvents(wavesurfer) {
     const prevChordValue = document.getElementById('prev-chord-value');
     const nextChordValue = document.getElementById('next-chord-value');
 
-    console.log(region);
-    checkMarkers();
+    checkMarkers(region);
     // console.log(wavesurfer.markers.markers);
     // displayedWaveformStartEndTime();
 
-    prevChordValue.textContent = '1';
-    nextChordValue.textContent = '2';
+    // prevChordValue.textContent = '1';
+    // nextChordValue.textContent = '2';
   });
 }
 
@@ -320,32 +319,51 @@ function overlapsWithVisibleRange(start, end, visibleStart, visibleEnd) {
   return start < visibleEnd && end > visibleStart;
 }
 
-function checkMarkers() {
-  var currentTime = wavesurfer.getCurrentTime();
+function checkMarkers(region) {
+  const beatDuration = region.end - region.start;
 
-  // Call your function to get the currently visible time range
-  const [visibleStartTime, visibleEndTime] = displayedWaveformStartEndTime();
+  // var currentTime = wavesurfer.getCurrentTime();
+  // // Call your function to get the currently visible time range
+  // const [visibleStartTime, visibleEndTime] = displayedWaveformStartEndTime();
+
+  // get the visible width of the parent container in pixels
+  const parentWidth = wavesurfer.drawer.getWidth();
+
+  // calculate the amount of time that each pixel in the waveform represents
+  const timePerPixel = wavesurfer.getDuration() / wavesurfer.drawer.width;
+  const displayedDurationInSeconds = parentWidth * timePerPixel;
+
+  if (beatDuration > displayedDurationInSeconds / 6) {
+    const prevChordValue = document.getElementById('prev-chord-value');
+    console.log(region, '✅');
+    prevChordValue.textContent = region.data.displayed_chord;
+  }
 
   // Assuming printWaveformTimes sets global variables startTime and endTime
   // var visibleStartTime = startTime;
   // var visibleEndTime = endTime;
 
-  for (var marker of wavesurfer.markers.markers) {
-    var markerEndTime = marker.time + marker.duration;
-    var isActive = marker.time <= currentTime && markerEndTime >= currentTime;
-    var isVisible = overlapsWithVisibleRange(
-      marker.time,
-      markerEndTime,
-      visibleStartTime,
-      visibleEndTime
-    );
-    // console.log('isActive', isActive);
-    // console.log('isVisible', isVisible);
-    if (isActive && !isVisible) {
-      console.log('✅ Marker is active but not visible: ', marker);
-    }
-  }
+  // for (var marker of wavesurfer.markers.markers) {
+  //   var markerEndTime = marker.time + marker.duration;
+  //   var isActive = marker.time <= currentTime && markerEndTime >= currentTime;
+  //   var isVisible = overlapsWithVisibleRange(
+  //     marker.time,
+  //     markerEndTime,
+  //     visibleStartTime,
+  //     visibleEndTime
+  //   );
+  //   // console.log('isActive', isActive);
+  //   // console.log('isVisible', isVisible);
+  //   if (isActive && !isVisible) {
+  //     console.log('✅ Marker is active but not visible: ', marker);
+  //   }
+  // }
 }
+
+/*
+TODO: COMMIT MESSAGE  in progress
+TODO display prev or next chord when labels not shown in current displayed waveform
+*/
 
 function displayedWaveformStartEndTime() {
   // get the current horizontal scroll offset in pixels
@@ -625,9 +643,12 @@ function saveChords() {
   let message;
   let index = annotationList.selectedIndex;
 
+  const selectedAnnotation = jamsFile.annotations[index];
+  const currDataSource = selectedAnnotation.annotation_metadata.data_source;
+
   // Disable replace button on first (show original) annotation
   const replacePromptBtn = document.getElementById('replacePrompt');
-  if (index === 0) {
+  if (currDataSource === 'program') {
     message = `Do you want to <span class="text-success">save</span> <span class="text-warning">${annotationList.value}</span> as a separate annotation? 🤷‍♂️`;
     replacePromptBtn.classList.add('d-none');
   } else {
@@ -637,7 +658,6 @@ function saveChords() {
 
   renderModalPrompt(message, jamsFile)
     .then(choice => {
-      console.log('this was executed1');
       const newAnnotation = _createNewAnnotation();
 
       console.log(newAnnotation);
@@ -656,10 +676,13 @@ function saveChords() {
       // In the annotation list include information about modification date! TODO
       createAnnotationsList(jamsFile);
       annotationList.selectedIndex = index;
+
+      // reset delete button if any new annotation was created
+      deleteAnnotationBtn.classList.remove('disabled');
     })
     .catch(() => {
       // User canceled
-      console.log('this was executed');
+      console.log('catch renderModalPrompt executed (User canceled)');
     });
 }
 
@@ -767,8 +790,12 @@ function _disableAnnotationListAndDeleteAnnotation() {
 
 function _disableSaveChordsAndCancelEditing() {
   annotationList.classList.remove('disabled');
-  // ONLY remove IF not first annotation
-  if (annotationList.selectedIndex !== 0) {
+
+  const selectedAnnotation = jamsFile.annotations[annotationList.selectedIndex];
+  const currDataSource = selectedAnnotation.annotation_metadata.data_source;
+
+  // ONLY remove IF not automatic analysis annotation
+  if (currDataSource !== 'program') {
     deleteAnnotationBtn.classList.remove('disabled');
   }
 
