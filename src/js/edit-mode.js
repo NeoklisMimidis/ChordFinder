@@ -10,6 +10,7 @@ import {
   selectedAnnotationData,
   updateMarkerDisplayWithColorizedRegions,
 } from './render-annotations.js';
+
 import {
   EDITED_MARKER_STYLE,
   MARKER_LABEL_SPAN_COLOR,
@@ -65,6 +66,9 @@ export let snapOnBeatsState = false;
 export let clickTrackState = false;
 export let isModalActive = false; // useful to disable some events while modal active
 
+let userInteractedWithWaveform = false;
+let cleanStateAnnotationEvents = true;
+
 let chord = {
   current: {
     root: '',
@@ -79,8 +83,11 @@ let chord = {
 };
 
 // - EVENTS
-export function editModeEvents(wavesurfer) {
+export function toolbarAndEditingRelatedEvents(wavesurfer) {
+  console.log('edit mode events triggered 💪💪');
+
   /* Events (for editor) */
+  if (!cleanStateAnnotationEvents) return;
 
   // // Default browsers warning when exiting without saving
   // window.addEventListener('beforeunload', function (e) {
@@ -98,51 +105,9 @@ export function editModeEvents(wavesurfer) {
     [snapOnBeatsState] = createToggle('#toggle-SnapOnBeats-btn');
   });
 
-  let closeBeats = false;
-  let curBeatTime;
-  // snap cursor to beat position (=== region.start or marker.time)
-  // (bcs of el. positioning "z-index" the effect needs to be triggered in 2 parts)
-  // 1st part [Snap on beats!] - marker
-  const markers = wavesurfer.markers.markers;
-  markers.forEach(marker => {
-    // (HOW to add a custom event that is not in the library)
-    marker.el.addEventListener('mousedown', event => {
-      const absoluteDifference = Math.abs(
-        curBeatTime - wavesurfer.getCurrentTime()
-      );
-      closeBeats = absoluteDifference <= 0.5;
-
-      if (snapOnBeatsState) {
-        if (editState && wavesurfer.isPlaying()) {
-          snapOnBeats(marker.time, event);
-        } else if (!editState) {
-          snapOnBeats(marker.time, event);
-        } else {
-          console.warn(
-            'Snap on beats, is disabled on Edit Mode while audio is paused ⚠️ Enjoy editing!'
-          );
-        }
-      }
-    });
-  });
   // 2nd part [Snap on beats!]  - region
   wavesurfer.on('region-click', (region, event) => {
-    const absoluteDifference = Math.abs(
-      curBeatTime - wavesurfer.getCurrentTime()
-    );
-    closeBeats = absoluteDifference <= 0.5;
-
-    if (snapOnBeatsState) {
-      if (editState && wavesurfer.isPlaying()) {
-        snapOnBeats(region.start, event);
-      } else if (!editState) {
-        snapOnBeats(region.start, event);
-      } else {
-        console.warn(
-          'Snap on beats, is disabled on Edit Mode while audio is paused ⚠️ Enjoy editing!'
-        );
-      }
-    }
+    triggerSnapOnBeats(region.start, event);
   });
 
   //  --- Click track! ---
@@ -155,19 +120,21 @@ export function editModeEvents(wavesurfer) {
     [clickTrackState] = createToggle('#toggle-clickTrack-btn');
   });
 
+  //  This event is used to avoid buggy click sounds when user interacts in any way with the waveform (click, skip forwards/backwards, timeline etc)
+  wavesurfer.on('interaction', () => {
+    console.log('interaction');
+    userInteractedWithWaveform = true;
+  });
+
   let prevColor;
   wavesurfer.on('region-in', region => {
-    curBeatTime = region.start;
-    // console.log(curBeatTime);
-
     if (!clickTrackState) return;
     // highlight every beat
     prevColor = region.color;
     region.update((region.color = CLICK_TRACK_HIGHLIGHT_COLOR));
 
-    // closeBeats is a way of avoiding very close beats that occur when user clicks on the waveform on a new position while audio is playing (seeks). T.L.D.R avoid next beat if very close to the last one played
-    if (!closeBeats) clickTrack();
-    closeBeats = false;
+    if (!userInteractedWithWaveform) clickTrack();
+    userInteractedWithWaveform = false;
   });
   // revert back to default color when leaving a region
   wavesurfer.on('region-out', region => {
@@ -288,8 +255,6 @@ export function editModeEvents(wavesurfer) {
       downloadJAMS(jamsFile);
     });
 
-  console.log('Event listeners for EDIT MODE ready! ⚡');
-
   //  Calculate tempo once in the start
   calculateTempo(wavesurfer.markers.markers[0].duration);
   // ..and now calculate beat for every region
@@ -311,6 +276,9 @@ export function editModeEvents(wavesurfer) {
     // prevChordValue.textContent = '1';
     // nextChordValue.textContent = '2';
   });
+
+  cleanStateAnnotationEvents = false;
+  console.log('Event listeners for EDIT MODE ready! ⚡');
 }
 
 // - TODO in progress
@@ -807,6 +775,7 @@ function _disableSaveChordsAndCancelEditing() {
 
 function _enableEditChordButtonFunction(selMarker) {
   console.log('selected marker:', selMarker);
+  //  NOTE: marker-click event only trigger on span element click!
 
   // Color selected marker ONLY
   _setMarkerSpanColor(selMarker, lastSelectedMarker, MARKER_LABEL_SPAN_COLOR);
@@ -914,17 +883,6 @@ function createTooltipsChordEditor() {
     'data-modal-tooltip',
     MODAL_SINGLETON_PROPS
   );
-
-  // createSingleton(tippy('#chord-editor td'), MODAL_SINGLETON_PROPS);
-
-  // const tippyInstances = tippy('#chord-editor td');
-  // const singleton = createSingleton(tippyInstances, {
-  //   delay: 100,
-  //   moveTransition: 'transform 0.25s ease-out',
-  //   hideOnClick: false,
-  //   content: '123',
-  // });
-  // tippyInstances.setContent('123');
 }
 
 /**
@@ -1121,9 +1079,45 @@ function _updateModalPromptForms(jamsFile) {
 }
 
 // -  Snap Beats & Click Track
-function snapOnBeats(beatTime, event) {
-  event.stopPropagation();
-  wavesurfer.seekTo(beatTime / wavesurfer.getDuration());
+
+/**
+ *
+ * Snap on beats: snap cursor to beat position (=== region.start or marker.time)
+ * (bcs of el. positioning "z-index" the effect needs to be triggered in 2 parts)
+ *
+ *  1st part - region (this is triggered inside toolbarAndEditingRelatedEvents())
+ *  2nd part - marker (this is triggered inside updateMarkerDisplayWithColorizedRegions())
+ *   *
+ */
+function triggerSnapOnBeats(startTime, event) {
+  if (snapOnBeatsState) {
+    event.stopPropagation();
+    if (editState && wavesurfer.isPlaying()) {
+      wavesurfer.seekTo(startTime / wavesurfer.getDuration());
+    } else if (!editState) {
+      wavesurfer.seekTo(startTime / wavesurfer.getDuration());
+    } else {
+      console.warn(
+        'Snap on beats, is disabled on Edit Mode while audio is paused ⚠️ Enjoy editing!'
+      );
+    }
+  }
+}
+
+// this is a special case event that needs to be assigned every time the list of markers change so it is called inside the updateMarkerDisplayWithColorizedRegions
+export function addMarkerEventSnapOnBeats(marker) {
+  if (marker.el.clickHandler) {
+    marker.el.removeEventListener('click', marker.el.clickHandler);
+  }
+
+  // Define the new click handler
+  marker.el.clickHandler = event => {
+    console.log('Snap on beats marker click event occurred ⚠️');
+    triggerSnapOnBeats(marker.time, event);
+  };
+
+  // Add the new click handler
+  marker.el.addEventListener('click', marker.el.clickHandler);
 }
 
 function clickTrack() {
@@ -1175,59 +1169,3 @@ function decodeAudioData(audioContext, arrayBuffer) {
     audioContext.decodeAudioData(arrayBuffer, resolve, reject);
   });
 }
-
-/*
-function _kickSound(audioContext, primaryGainControl) {
-  // console.log(audioContext, primaryGainControl);
-
-  // Kick drum from a sine wave Oscillator
-  // [AudioNode] // (OscillatorNode) ⚡
-  const kickOscillator = audioContext.createOscillator();
-
-  // Decrease frequency over time
-  kickOscillator.frequency.value = 150;
-  // kickOscillator.type = 'sine'; // (default value)
-  // Shape of oscillator wave can also be: square, sawtooth, triangle or custom
-  kickOscillator.frequency.exponentialRampToValueAtTime(
-    0.001,
-    audioContext.currentTime + 0.5
-  );
-
-  // Decrease gain over time, to avoid pop
-  // [AudioNode] // (GainNode - 'effect') ⚡⚡
-  const kickGain = audioContext.createGain();
-  kickGain.gain.value = 5;
-
-  kickGain.gain.exponentialRampToValueAtTime(
-    0.001,
-    audioContext.currentTime + 0.5
-  );
-
-  kickOscillator.connect(kickGain);
-  kickGain.connect(primaryGainControl);
-
-  kickOscillator.start();
-  kickOscillator.stop(audioContext.currentTime + 0.5); // This is required in order for our kick to stop after a duration!!
-}
-
-function _clickSound2(audioContext, primaryGainControl) {
-  // Click sound from a square wave Oscillator
-  const clickOscillator = audioContext.createOscillator();
-  clickOscillator.type = 'square';
-  clickOscillator.frequency.value = 1000;
-
-  // Decrease gain over time to avoid pop
-  const clickGain = audioContext.createGain();
-  clickGain.gain.value = 1;
-  clickGain.gain.exponentialRampToValueAtTime(
-    0.001,
-    audioContext.currentTime + 0.1
-  );
-
-  clickOscillator.connect(clickGain);
-  clickGain.connect(primaryGainControl);
-
-  clickOscillator.start();
-  clickOscillator.stop(audioContext.currentTime + 0.1);
-}
-*/

@@ -9,7 +9,10 @@ import {
   deleteAnnotationBtn,
   resetToolbar,
 } from './edit-mode.js';
-import { editModeEvents } from './edit-mode.js';
+import {
+  toolbarAndEditingRelatedEvents,
+  addMarkerEventSnapOnBeats,
+} from './edit-mode.js';
 
 import { variations, accidentals, chordColor } from './components/mappings.js';
 import { createTippySingleton } from './components/tooltips.js';
@@ -24,7 +27,6 @@ import {
 } from './config.js';
 
 export let jamsFile;
-let cleanState = true;
 
 export function loadJAMS(input) {
   if (input === undefined) return;
@@ -51,9 +53,6 @@ export function loadJAMS(input) {
       // Render first annotation
       annotatedChordsAtBeatsData = selectedAnnotationData(jamsFile);
       renderAnnotations(annotatedChordsAtBeatsData);
-
-      if (cleanState) editModeEvents(wavesurfer);
-      cleanState = false;
     })
     .catch(error => {
       // Handle the error from any part of the promise chain
@@ -252,11 +251,16 @@ export function updateMarkerDisplayWithColorizedRegions(editModeStyle = false) {
     // Add a REGION for each wavesurfer.marker
     _colorizeChordRegion(marker);
 
+    addMarkerEventSnapOnBeats(marker);
+
     prevChord = marker.mirLabel;
   });
 
   // Re-enable tooltips
   markersSingleton.enable();
+
+  // The reason that the events for toolbar and waveform are
+  toolbarAndEditingRelatedEvents(wavesurfer);
 
   console.log('Chord regions have been successfully colorized! ✌️');
 }

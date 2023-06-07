@@ -39,21 +39,26 @@ wavesurfer.on('error', function (error) {
   console.warn('Wavesurfer ☠️:', error);
 });
 
-let cleanState = true;
-// Only execute the following on first load!
 wavesurfer.on('ready', function () {
-  // resetAudioPlayer();
-  if (cleanState === true) {
-    try {
-      // Attach the required events for the application ONCE
-      audioPlayerEvents(wavesurfer);
-      cleanState = false;
-
-      console.log('Events Ready! 👍');
-    } catch (error) {
-      console.error('Error in wavesurfer ready callback!');
-    }
-
-    console.log('Waveform ready! 👍');
-  }
+  console.log('Waveform ready! 👍');
 });
+
+// let cleanState = true;
+// // Only execute the following on first load!
+// wavesurfer.on('ready', function () {
+//   // resetAudioPlayer();
+//   if (cleanState === true) {
+//     try {
+//       // Attach the required events for the application ONCE
+//       // audioPlayerEvents(wavesurfer);
+//       // cleanState = false;
+//       // console.log('Audio events Ready! 👍');
+
+//       console.log('Events Ready! 👍');
+//     } catch (error) {
+//       console.error('Error in wavesurfer ready callback!');
+//     }
+
+//     console.log('Waveform ready! 👍');
+//   }
+// });

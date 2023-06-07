@@ -33,6 +33,7 @@ let fileName = 'Unknown'; // store prev filename on every import
 const minPxPerSec = 152;
 let prevVolumeSliderValue = 0.5;
 let repeatEnable = false;
+let cleanStateAudioEvents = true; // this is used to avoid bugs that occur when a new audio file is loaded and events are assigned again.
 
 export function toggleAudioInOutControls() {
   const audioSidebarText = document.getElementById('audio-sidebar-text');
@@ -119,6 +120,7 @@ export function loadAudioFile(input) {
         // Load file
         wavesurfer.load(fileUrl);
         resetAudioPlayer();
+        audioPlayerEvents();
       })
       .catch(() => {
         // User canceled
@@ -127,6 +129,7 @@ export function loadAudioFile(input) {
     // Load file
     wavesurfer.load(fileUrl);
     resetAudioPlayer();
+    audioPlayerEvents();
   }
 
   if (file !== undefined) {
@@ -135,9 +138,13 @@ export function loadAudioFile(input) {
   document.querySelector('#audio-file-name').textContent = fileName.trim();
 }
 
-export function audioPlayerEvents(wavesurfer) {
-  /* Events (for audio player) */
+function audioPlayerEvents() {
+  console.log(wavesurfer);
 
+  // Only assign events once (first webpage audio load)
+  if (!cleanStateAudioEvents) return;
+
+  /* Events (for audio player) */
   // Zoom in/out events
   zoomInBtn.addEventListener('click', zoomIn);
   zoomOutBtn.addEventListener('click', zoomOut);
@@ -152,6 +159,22 @@ export function audioPlayerEvents(wavesurfer) {
 
   // play/pause with space button if playback started
   document.addEventListener('keydown', keyboardPlayerEvents);
+
+  // change volume with a slider
+  // volumeSlider.addEventListener('input', setVolumeWithSlider);
+  volumeSlider.addEventListener('input', e =>
+    setVolumeWithSlider(e.target.value)
+  );
+  // TODO there will be option switching between those 2 modes
+  // ***1st mode with scrolling***
+  // Starts with autoCenter. Disabling when clicking/moving scrollbar.
+  waveform.addEventListener('mousedown', function () {
+    wavesurfer.params.autoCenter = false;
+  });
+
+  waveform.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+  });
 
   // on finish change PLAY button
   wavesurfer.on('finish', () => {
@@ -170,23 +193,6 @@ export function audioPlayerEvents(wavesurfer) {
     // wavesurfer.params.autoCenter = true;
   });
 
-  // change volume with a slider
-  // volumeSlider.addEventListener('input', setVolumeWithSlider);
-  volumeSlider.addEventListener('input', e =>
-    setVolumeWithSlider(e.target.value)
-  );
-
-  // TODO there will be option switching between those 2 modes
-  // ***1st mode with scrolling***
-  // Starts with autoCenter. Disabling when clicking/moving scrollbar.
-  waveform.addEventListener('mousedown', function () {
-    wavesurfer.params.autoCenter = false;
-  });
-
-  waveform.addEventListener('contextmenu', function (e) {
-    e.preventDefault();
-  });
-
   // Re-enable autoCenter when user interacts with waveform or minimap
   wavesurfer.on('interaction', function () {
     wavesurfer.params.autoCenter = true;
@@ -199,6 +205,8 @@ export function audioPlayerEvents(wavesurfer) {
   // });
 
   console.log('Event listeners for AUDIO PLAYER ready! ⚡');
+
+  cleanStateAudioEvents = false;
 }
 
 export function resetAudioPlayer() {
