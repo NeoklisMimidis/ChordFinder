@@ -25,6 +25,8 @@ if (module.hot) {
 }
 // // // // // // // // // // // // // // // // // // // // // // // // // // //
 
+// Now you are on dev branch. GIT OP!
+
 /* Elements */
 const waveform = document.querySelector('#waveform');
 const zoomInBtn = document.querySelector('#zoom-in-btn');
