@@ -134,46 +134,44 @@ function initWavesurfer() {
 
   return wavesurfer;
 }
+
 export function loadAudioFile(input) {
-  // Configure elements initial state (while loading)
-  _initElementsState();
-  console.log(input);
   if (input === undefined) return;
 
-  // check saved state depending on existing attributes
   const saveChordsBtn = document.querySelector('#save-chords-btn');
-  let saveState = saveChordsBtn.classList.contains('disabled');
+  const audioFileName = document.querySelector('#audio-file-name');
 
+  let saveState = saveChordsBtn.classList.contains('disabled');
   const [fileUrl, file] = loadFile(input);
-  console.log(file);
+
+  function loadAudio() {
+    _initElementsState();
+    wavesurfer.load(fileUrl);
+    resetAudioPlayer();
+    audioPlayerEvents();
+    audioFileName.textContent = fileName.trim();
+  }
 
   if (file && !saveState) {
     const message = `You are about to import: <br> <span class="text-primary">${file.name}</span>.<br> Any unsaved changes on<br><span class="text-primary">${fileName}</span> will be <span class="text-warning">discarded.</span> <br><br><span class="text-info">Are you sure?</span> 🤷‍♂️`;
-    // fileName = file.name;
 
     renderModalMessage(message)
       .then(() => {
-        // User confirmed
-        // Load file
-        wavesurfer.load(fileUrl);
-        resetAudioPlayer();
-        audioPlayerEvents();
+        loadAudio();
+        console.log(`New Audio imported while previous audio was NOT saved `);
+        if (file !== undefined) {
+          fileName = file.name;
+        }
       })
       .catch(() => {
         // User canceled
       });
   } else {
-    // Load file
-    wavesurfer.load(fileUrl);
-    resetAudioPlayer();
-    audioPlayerEvents();
-    console.log('Dont you dare! ');
+    loadAudio();
+    console.log(
+      `New Audio imported while previous audio (if any) was saved (doesn't count for demo files)`
+    );
   }
-
-  if (file !== undefined) {
-    fileName = file.name;
-  }
-  document.querySelector('#audio-file-name').textContent = fileName.trim();
 }
 
 function audioPlayerEvents() {
