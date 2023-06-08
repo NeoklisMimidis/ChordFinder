@@ -266,6 +266,7 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 /* MARKERS */
 .wavesurfer-marker {
   z-index: 4 !important;
+  pointer-events: none;
 }
 /* // - */
 .span-chord-text {
@@ -282,7 +283,8 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 }
 
 .span-chord-symbol {
-  display: flex;
+  display: flex !important;
+  /* flex-wrap: wrap; */
   justify-content: center;
   align-items: flex-start;
   white-space: nowrap;

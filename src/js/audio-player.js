@@ -8,10 +8,22 @@ import timelinePlugin from 'wavesurfer.js/dist/plugin/wavesurfer.timeline.min.js
 import markersPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.markers.min.js';
 import minimapPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.minimap.min.js';
 
-// Created wavesurfer instance from main.js
-import { wavesurfer } from './main.js';
 import { renderModalMessage, isModalActive } from './edit-mode.js';
-import { loadFile } from './components/utilities.js';
+
+import {
+  loadFile,
+  fileSelectHandlers,
+  dragDropHandlers,
+} from './components/utilities.js';
+import { variableToEstablishConnection } from './demo_files.js';
+
+// //  Disable PARCEL Hot Module Reloading bcs it is buggy with Wavesurfer  // //
+if (module.hot) {
+  module.hot.dispose(() => {
+    window.location.reload();
+  });
+}
+// // // // // // // // // // // // // // // // // // // // // // // // // // //
 
 /* Elements */
 const waveform = document.querySelector('#waveform');
@@ -31,11 +43,35 @@ const volumeSlider = document.querySelector('.volume-slider');
 
 let fileName = 'Unknown'; // store prev filename on every import
 const minPxPerSec = 152;
-let prevVolumeSliderValue = 0.5;
 let repeatEnable = false;
+let prevVolumeSliderValue = 0.5;
 let cleanStateAudioEvents = true; // this is used to avoid bugs that occur when a new audio file is loaded and events are assigned again.
 
-export function toggleAudioInOutControls() {
+// - Start of the application ||
+
+// Init Sidebar (toggle) AUDIO I/O functionality
+toggleAudioInOutControls();
+
+// // Init Wavesurfer (create wavesurfer instance) // //
+export let wavesurfer = initWavesurfer();
+
+// Handlers about selection or dragging the appropriate files for app initialization
+dragDropHandlers('#waveform', loadAudioFile, 'drag-over');
+fileSelectHandlers('#import-audio-btn', loadAudioFile);
+
+// fileSelectHandlers('#analyze-chords-btn', loadJAMS, '.jams');
+
+// catching wavesurfer errors
+wavesurfer.on('error', function (error) {
+  console.warn('Wavesurfer ☠️:', error);
+});
+
+wavesurfer.on('ready', function () {
+  console.log('Waveform ready! 👍');
+});
+
+// -
+function toggleAudioInOutControls() {
   const audioSidebarText = document.getElementById('audio-sidebar-text');
   const audioSidebarControls = document.getElementById(
     'audio-sidebar-controls'
@@ -47,7 +83,7 @@ export function toggleAudioInOutControls() {
   });
 }
 
-export function initWavesurfer() {
+function initWavesurfer() {
   const wavesurfer = WaveSurfer.create({
     container: '#waveform', // html element
     waveColor: '#337ab9', // '#1F51FF',
@@ -96,7 +132,6 @@ export function initWavesurfer() {
 
   return wavesurfer;
 }
-
 export function loadAudioFile(input) {
   // Configure elements initial state (while loading)
   _initElementsState();
@@ -130,6 +165,7 @@ export function loadAudioFile(input) {
     wavesurfer.load(fileUrl);
     resetAudioPlayer();
     audioPlayerEvents();
+    console.log('Dont you dare! ');
   }
 
   if (file !== undefined) {
@@ -209,7 +245,7 @@ function audioPlayerEvents() {
   cleanStateAudioEvents = false;
 }
 
-export function resetAudioPlayer() {
+function resetAudioPlayer() {
   // hide audio importing description
   document.querySelector('.preface-audio-help').classList.add('d-none');
   document.querySelector('.preface-annotation-help').classList.remove('d-none');
@@ -389,40 +425,6 @@ function keyboardPlayerEvents(event) {
   }
 }
 
-function displayedWaveformStartEndTime() {
-  // get the current horizontal scroll offset in pixels
-  const scrollWidthStart = wavesurfer.drawer.getScrollX();
-
-  // get the visible width of the parent container in pixels
-  const parentWidth = wavesurfer.drawer.getWidth();
-
-  // calculate the horizontal scroll offset at the end of the visible area
-  const scrollWidthEnd = scrollWidthStart + parentWidth;
-
-  // calculate the amount of time that each pixel in the waveform represents
-  const timePerPixel = wavesurfer.getDuration() / wavesurfer.drawer.width;
-
-  // calculate the start and end times of the audio portion currently displayed in the view
-  const startTime = timePerPixel * scrollWidthStart;
-  const endTime = timePerPixel * scrollWidthEnd;
-
-  console.log('Start time: ' + startTime);
-  console.log('End time: ' + endTime);
-
-  return [startTime, endTime];
-}
-
-function bringToFrontWavesurferCursor() {
-  // cursor line
-  const cursor = document.querySelector('#waveform > wave > wave');
-  cursor.style.zIndex = 6;
-  // cursor duration text
-  const cursorCurrentTimeText = document.querySelector(
-    '#waveform > wave > showtitle'
-  );
-  cursorCurrentTimeText.style.zIndex = 6;
-}
-
 function _initElementsState() {
   // destroy previous tippy singleton instance
   if (wavesurfer.markers.markers[0]) {
@@ -450,12 +452,11 @@ function _initElementsState() {
   audioFileName.classList.add('pointer-events-disabled');
   // removing editing color
   document.querySelector('#toolbar').classList.remove('editing-on');
-
   document.querySelector('#info-question').classList.add('d-none');
 
   // Audio I/O
   document.querySelector('#analyze-chords-btn').classList.add('disabled');
-  document.querySelector('#download-chords-btn').classList.add('disabled');
+  document.querySelector('#download-jams-btn').classList.add('disabled');
 
   // Left controls player
   zoomInBtn.classList.add('disabled');
@@ -611,4 +612,38 @@ function calcParams() {
   console.log(wavesurfer);
   console.log('  ---------------------');
   console.log(wavesurfer.drawer);
+}
+
+function displayedWaveformStartEndTime() {
+  // get the current horizontal scroll offset in pixels
+  const scrollWidthStart = wavesurfer.drawer.getScrollX();
+
+  // get the visible width of the parent container in pixels
+  const parentWidth = wavesurfer.drawer.getWidth();
+
+  // calculate the horizontal scroll offset at the end of the visible area
+  const scrollWidthEnd = scrollWidthStart + parentWidth;
+
+  // calculate the amount of time that each pixel in the waveform represents
+  const timePerPixel = wavesurfer.getDuration() / wavesurfer.drawer.width;
+
+  // calculate the start and end times of the audio portion currently displayed in the view
+  const startTime = timePerPixel * scrollWidthStart;
+  const endTime = timePerPixel * scrollWidthEnd;
+
+  console.log('Start time: ' + startTime);
+  console.log('End time: ' + endTime);
+
+  return [startTime, endTime];
+}
+
+function bringToFrontWavesurferCursor() {
+  // cursor line
+  const cursor = document.querySelector('#waveform > wave > wave');
+  cursor.style.zIndex = 6;
+  // cursor duration text
+  const cursorCurrentTimeText = document.querySelector(
+    '#waveform > wave > showtitle'
+  );
+  cursorCurrentTimeText.style.zIndex = 6;
 }

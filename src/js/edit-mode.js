@@ -1,7 +1,7 @@
 'use strict';
 
-// Created wavesurfer instance from main.js
-import { wavesurfer } from './main.js';
+// Created wavesurfer instance from audio-player.js
+import { wavesurfer } from './audio-player.js';
 import {
   jamsFile,
   addMarkerAtTime,
@@ -57,17 +57,19 @@ const applyBtn = document.getElementById('apply-btn');
 const cancelBtn = document.getElementById('cancel-btn');
 
 /* UI variables/states */
+let cleanStateAnnotationEvents = true; // this is used to avoid bugs that occur when a new annotation file is loaded and events are assigned again (so assigning events only on clean state).
+
 let clickBuffer; // Store into a variable the fetched click sound for repeated usage
 let lastSelectedMarker;
 let isWebAudioInitialized = false;
-let audioContext, primaryGainControl;
-export let editState = false; // true of false edit state(toggle Edit)
-export let snapOnBeatsState = false;
-export let clickTrackState = false;
-export let isModalActive = false; // useful to disable some events while modal active
-
+// let audioContext, primaryGainControl;
+let snapOnBeatsState = false;
+let clickTrackState = false;
 let userInteractedWithWaveform = false;
-let cleanStateAnnotationEvents = true;
+let [audioContext, primaryGainControl] = _initWebAudio();
+
+export let editModeState = false; // true of false edit state(toggle Edit)
+export let isModalActive = false; // useful to disable some events while modal active
 
 let chord = {
   current: {
@@ -84,8 +86,6 @@ let chord = {
 
 // - EVENTS
 export function toolbarAndEditingRelatedEvents(wavesurfer) {
-  console.log('edit mode events triggered 💪💪');
-
   /* Events (for editor) */
   if (!cleanStateAnnotationEvents) return;
 
@@ -99,183 +99,36 @@ export function toolbarAndEditingRelatedEvents(wavesurfer) {
   /* Left controls events */
   /* -------------------- */
 
-  //  --- Snap (beats)! ---
-  toggleSnapOnBeatsBtn.addEventListener('click', () => {
-    // Create toggle functionality for Snap (beats) button
-    [snapOnBeatsState] = createToggle('#toggle-SnapOnBeats-btn');
-  });
-
-  // 2nd part [Snap on beats!]  - region
-  wavesurfer.on('region-click', (region, event) => {
-    triggerSnapOnBeats(region.start, event);
-  });
-
-  //  --- Click track! ---
-  // initialize web audio api for click track (not actually an event)
-  [audioContext, primaryGainControl] = _initWebAudio();
-  console.log('🚀:', audioContext, '🚀:', primaryGainControl);
-
-  toggleClickTrackBtn.addEventListener('click', () => {
-    // Create toggle functionality for Click Track button
-    [clickTrackState] = createToggle('#toggle-clickTrack-btn');
-  });
-
-  //  This event is used to avoid buggy click sounds when user interacts in any way with the waveform (click, skip forwards/backwards, timeline etc)
-  wavesurfer.on('interaction', () => {
-    console.log('interaction');
-    userInteractedWithWaveform = true;
-  });
-
-  let prevColor;
-  wavesurfer.on('region-in', region => {
-    if (!clickTrackState) return;
-    // highlight every beat
-    prevColor = region.color;
-    region.update((region.color = CLICK_TRACK_HIGHLIGHT_COLOR));
-
-    if (!userInteractedWithWaveform) clickTrack();
-    userInteractedWithWaveform = false;
-  });
-  // revert back to default color when leaving a region
-  wavesurfer.on('region-out', region => {
-    if (prevColor) {
-      region.update((region.color = prevColor));
-    }
-  });
-
-  // CAREFUL! onpause also triggers on waveform seek (so now when on activate clickTrackState it also colorizes )
-  wavesurfer.on('pause', () => {
-    // Only in the case where annotations exist
-    if (wavesurfer.markers.markers[0] && clickTrackState) {
-      updateMarkerDisplayWithColorizedRegions();
-    }
-  });
+  setupSnapOnBeatsEvent();
+  setupClickTrackEvent();
 
   /* ---------------------- */
   /* Center controls events */
   /* ---------------------- */
-  // On annotationList change, Clear previous & render the new selected annotation
-  annotationList.addEventListener('change', () => {
-    wavesurfer.clearMarkers();
-    wavesurfer.clearRegions();
-    console.log(jamsFile);
-    renderAnnotations(selectedAnnotationData(jamsFile));
-  });
-  deleteAnnotationBtn.addEventListener('click', () => {
-    deleteAnnotation();
-  });
-  toggleEditBtn.addEventListener('click', toggleEdit.bind(editChordBtn));
+
+  setupAnnotationListEvents();
+  setupToggleEditEvent();
 
   /* --------------------- */
   /* Right controls events */
   /* --------------------- */
-  // edit chord click (modify selected chord)
-  wavesurfer.on(
-    'marker-click',
-    // Edit selected chord onPressingEditChordButton (enables button)
-    _enableEditChordButtonFunction.bind(editChordBtn)
-  );
-  editChordBtn.addEventListener('click', showChordEditor);
-  saveChordsBtn.addEventListener('click', () => {
-    saveChords();
-  });
-  cancelEditingBtn.addEventListener('click', () => {
-    cancelEditingChords();
-  });
 
-  /*  on ..Editing events */
-  // Add beat onDoubleClick (AND chord SAME as previous chord)
-  wavesurfer.on('region-dblclick', addBeatAndChord);
+  // Annotation tools (toolbar)
+  setupEditChordEvents();
+  setupSaveChordsEvent();
+  setupCancelEditingEvent();
 
-  // Edit beat onDrag -- only for styling || marker-drop change the beat
-  // wavesurfer.on('marker-drag', editBeat);
-  wavesurfer.on('marker-drag', function (marker, e) {
-    editBeat(marker, e);
-  });
-  wavesurfer.on('marker-drop', editBeatTiming);
+  // Annotation tools (waveform)
+  setupAddBeatAndChordEvent();
+  setupEditBeatTimingEvents();
+  setupRemoveBeatAndChordEvent();
 
-  // Remove marker onRightClick (== remove chord AND beat at position)
-  wavesurfer.on('marker-contextmenu', removeBeatAndChord);
-
-  // do something when the slider is moved
-  wavesurfer.on('seek', progress => {
-    // console.log('Slider moved to: ' + progress);
-
-    // disable Edit chord button & remove color from selected marker
-    editChordBtn.classList.add('disabled');
-    if (lastSelectedMarker !== undefined) {
-      _setMarkerSpanColor(lastSelectedMarker, lastSelectedMarker, '');
-    }
-  });
-
-  /* ------------------- */
-  /* Chord Editor Modal */
-  /* ------------------ */
-  // This is not actually an event! It assigns the tooltips in the table
-  createTooltipsChordEditor();
-
-  chordEditor.addEventListener('click', event => {
-    // Proceed if click is on el with class Root, Accidental or Variation
-    if (event.target.tagName !== 'TD' && event.target.tagName !== 'TEXT') {
-      return;
-    }
-
-    // A loop to find the closest element with a class
-    let closestElementWithClass = event.target;
-    while (
-      closestElementWithClass &&
-      closestElementWithClass.className === ''
-    ) {
-      closestElementWithClass = closestElementWithClass.parentElement;
-    }
-    const selection = closestElementWithClass;
-    const component = closestElementWithClass.className;
-
-    select(selection, component);
-    editChord();
-  });
-
-  // cancel click
-  cancelBtn.addEventListener('click', () => {
-    editChord(true);
-    closeModal(true);
-  });
-
-  // apply click
-  applyBtn.addEventListener('click', () => {
-    // disableAnnotationList();
-    _disableAnnotationListAndDeleteAnnotation();
-    closeModal();
-  });
-
-  // AUDIO I/O download button
-  document
-    .querySelector('#download-chords-btn')
-    .addEventListener('click', () => {
-      downloadJAMS(jamsFile);
-    });
-
-  //  Calculate tempo once in the start
-  calculateTempo(wavesurfer.markers.markers[0].duration);
-  // ..and now calculate beat for every region
-  wavesurfer.on('region-in', region => {
-    // console.log('Tempo:', 60 / (region.end - region.start));
-    const beatDuration = region.end - region.start;
-    calculateTempo(beatDuration);
-  });
-
-  // let
-  wavesurfer.on('region-in', region => {
-    const prevChordValue = document.getElementById('prev-chord-value');
-    const nextChordValue = document.getElementById('next-chord-value');
-
-    checkMarkers(region);
-    // console.log(wavesurfer.markers.markers);
-    // displayedWaveformStartEndTime();
-
-    // prevChordValue.textContent = '1';
-    // nextChordValue.textContent = '2';
-  });
+  /* ------- */
+  /* OTHERS */
+  /* ------ */
+  setupDownloadJamsEvent();
+  setupCalculateTempoEvent();
+  setupShowPrevOrNextChordLabelWhenNotIntoView();
 
   cleanStateAnnotationEvents = false;
   console.log('Event listeners for EDIT MODE ready! ⚡');
@@ -306,26 +159,6 @@ function checkMarkers(region) {
     console.log(region, '✅');
     prevChordValue.textContent = region.data.displayed_chord;
   }
-
-  // Assuming printWaveformTimes sets global variables startTime and endTime
-  // var visibleStartTime = startTime;
-  // var visibleEndTime = endTime;
-
-  // for (var marker of wavesurfer.markers.markers) {
-  //   var markerEndTime = marker.time + marker.duration;
-  //   var isActive = marker.time <= currentTime && markerEndTime >= currentTime;
-  //   var isVisible = overlapsWithVisibleRange(
-  //     marker.time,
-  //     markerEndTime,
-  //     visibleStartTime,
-  //     visibleEndTime
-  //   );
-  //   // console.log('isActive', isActive);
-  //   // console.log('isVisible', isVisible);
-  //   if (isActive && !isVisible) {
-  //     console.log('✅ Marker is active but not visible: ', marker);
-  //   }
-  // }
 }
 
 /*
@@ -390,7 +223,7 @@ export function resetToolbar() {
   resetToggle('#toggle-clickTrack-btn');
 
   // Middle controls
-  editState = false; // this will affect the rendering of the new annotation with updateMarkerDisplayWithColorizedRegions()
+  editModeState = false; // this will affect the rendering of the new annotation with updateMarkerDisplayWithColorizedRegions()
   annotationList.classList.remove('disabled');
   resetToggle('#toggle-edit-btn');
 
@@ -402,7 +235,7 @@ export function resetToolbar() {
   });
 
   // enable download again
-  document.querySelector('#download-chords-btn').classList.remove('disabled');
+  document.querySelector('#download-jams-btn').classList.remove('disabled');
 
   // removing editing color
   document.querySelector('#toolbar').classList.remove('editing-on');
@@ -447,12 +280,14 @@ function deleteAnnotation() {
 function toggleEdit() {
   // Create toggle functionality for edit button
   const [state, _, __] = createToggle('#toggle-edit-btn');
-  editState = state;
-  console.log(`Edit ${editState ? 'enabled! Have fun 😜!' : '..disabled'} `);
+  editModeState = state;
+  console.log(
+    `Edit ${editModeState ? 'enabled! Have fun 😜!' : '..disabled'} `
+  );
 
   // zoom once in or out when entering edit mode
   wavesurfer.zoom(
-    editState
+    editModeState
       ? wavesurfer.params.minPxPerSec * 2
       : wavesurfer.params.minPxPerSec / 2
   );
@@ -476,7 +311,7 @@ function toggleEdit() {
   const questionIcon = document.querySelector('.fa-circle-question');
   const infoIcon = document.querySelector('.fa-circle-info');
   // Tippy (tooltips) related functionality
-  if (editState) {
+  if (editModeState) {
     editModeTools.classList.remove('pointer-events-disabled');
     questionIcon.classList.add('d-none');
     infoIcon.classList.remove('d-none');
@@ -493,7 +328,7 @@ function addBeatAndChord(e) {
   Current time: ${wavesurfer.getCurrentTime()}`);
 
   // Only add markers in the case where edit mode is activated and audio is not playing
-  if (!editState || wavesurfer.isPlaying()) return;
+  if (!editModeState || wavesurfer.isPlaying()) return;
 
   _disableAnnotationListAndDeleteAnnotation();
 
@@ -773,7 +608,7 @@ function _disableSaveChordsAndCancelEditing() {
   document.querySelector('#toolbar').classList.remove('editing-on');
 }
 
-function _enableEditChordButtonFunction(selMarker) {
+function enableEditChordButtonFunction(selMarker) {
   console.log('selected marker:', selMarker);
   //  NOTE: marker-click event only trigger on span element click!
 
@@ -783,7 +618,14 @@ function _enableEditChordButtonFunction(selMarker) {
   lastSelectedMarker = selMarker;
 
   // Enable the editChordBtn
-  this.classList.remove('disabled');
+  editChordBtn.classList.remove('disabled');
+}
+
+function disableEditChordButtonFunction() {
+  editChordBtn.classList.add('disabled');
+  if (lastSelectedMarker !== undefined) {
+    _setMarkerSpanColor(lastSelectedMarker, lastSelectedMarker, '');
+  }
 }
 
 function _setMarkerSpanColor(selMarker, lastSelectedMarker, color) {
@@ -848,7 +690,6 @@ function closeModal() {
   isModalActive = false;
 }
 
-import tippy, { createSingleton, followCursor, animateFill } from 'tippy.js';
 function createTooltipsChordEditor() {
   // Assigning a tooltip according to mapping (tippy step 1)
   tableElements.forEach(element => {
@@ -1082,21 +923,31 @@ function _updateModalPromptForms(jamsFile) {
 
 /**
  *
- * Snap on beats: snap cursor to beat position (=== region.start or marker.time)
- * (bcs of el. positioning "z-index" the effect needs to be triggered in 2 parts)
+ * [Snap (beats)]: snap cursor to beat position (=== region.start)
  *
- *  1st part - region (this is triggered inside toolbarAndEditingRelatedEvents())
- *  2nd part - marker (this is triggered inside updateMarkerDisplayWithColorizedRegions())
- *   *
  */
-function triggerSnapOnBeats(startTime, event) {
+// TODO
+// 1) reset functionality on every resetToolbar.. not only the displayed button
+function setupSnapOnBeatsEvent() {
+  toggleSnapOnBeatsBtn.addEventListener('click', () => {
+    [snapOnBeatsState] = createToggle('#toggle-SnapOnBeats-btn');
+  });
+
+  wavesurfer.on('region-click', (region, event) => {
+    snapOnBeats(region.start, event);
+  });
+}
+
+function snapOnBeats(startTime, event) {
   if (snapOnBeatsState) {
-    event.stopPropagation();
-    if (editState && wavesurfer.isPlaying()) {
+    if (editModeState && wavesurfer.isPlaying()) {
+      event.stopPropagation(); // CAREFUL! stop propagation on in those 2 cases of snap cursor
       wavesurfer.seekTo(startTime / wavesurfer.getDuration());
-    } else if (!editState) {
+    } else if (!editModeState) {
+      event.stopPropagation(); // CAREFUL! stop propagation on in those 2 cases of snap cursor
       wavesurfer.seekTo(startTime / wavesurfer.getDuration());
     } else {
+      // CAREFUL! DON'T STOP propagation HERE
       console.warn(
         'Snap on beats, is disabled on Edit Mode while audio is paused ⚠️ Enjoy editing!'
       );
@@ -1104,23 +955,58 @@ function triggerSnapOnBeats(startTime, event) {
   }
 }
 
-// this is a special case event that needs to be assigned every time the list of markers change so it is called inside the updateMarkerDisplayWithColorizedRegions
-export function addMarkerEventSnapOnBeats(marker) {
-  if (marker.el.clickHandler) {
-    marker.el.removeEventListener('click', marker.el.clickHandler);
-  }
+/**
+ *
+ * [Click Track]: create a click sound on every beat (===beat duration or respective region)
+ *
+ */
 
-  // Define the new click handler
-  marker.el.clickHandler = event => {
-    console.log('Snap on beats marker click event occurred ⚠️');
-    triggerSnapOnBeats(marker.time, event);
-  };
+function setupClickTrackEvent() {
+  let prevColor;
 
-  // Add the new click handler
-  marker.el.addEventListener('click', marker.el.clickHandler);
+  // TODO 1) Optimize DONT USE updateMarkerDisplayWithColorizedRegions
+  // 2) reset functionality on every resetToolbar.. not only the displayed button
+
+  console.log('🚀:', audioContext, '🚀:', primaryGainControl);
+
+  toggleClickTrackBtn.addEventListener('click', () => {
+    // Create toggle functionality for Click Track button
+    [clickTrackState] = createToggle('#toggle-clickTrack-btn');
+  });
+
+  //  This event is used to avoid buggy click sounds when user interacts in any way with the waveform (click, skip forwards/backwards, timeline etc)
+  wavesurfer.on('interaction', () => {
+    console.log('interaction');
+    userInteractedWithWaveform = true;
+  });
+
+  wavesurfer.on('region-in', region => {
+    prevColor = region.color;
+    if (!clickTrackState) return;
+    // highlight every beat
+    region.update((region.color = CLICK_TRACK_HIGHLIGHT_COLOR));
+
+    if (!userInteractedWithWaveform) clickTrack();
+    userInteractedWithWaveform = false;
+  });
+  // revert back to default color when leaving a region
+  wavesurfer.on('region-out', region => {
+    if (prevColor) {
+      region.update((region.color = prevColor));
+    }
+  });
+
+  // CAREFUL! onpause also triggers on waveform seek (so now when on activate clickTrackState it also colorizes )
+  wavesurfer.on('pause', () => {
+    // Only in the case where annotations exist
+    if (wavesurfer.markers.markers[0] && clickTrackState) {
+      updateMarkerDisplayWithColorizedRegions();
+    }
+  });
 }
 
 function clickTrack() {
+  // In case of destroyed audio context
   if (!isWebAudioInitialized) {
     [audioContext, primaryGainControl] = _initWebAudio();
     console.log('🚀:', audioContext, '🚀:', primaryGainControl);
@@ -1132,6 +1018,7 @@ function clickTrack() {
 function _initWebAudio() {
   isWebAudioInitialized = true;
 
+  // console.log('_initWebAudio');
   const audioContext = new AudioContext();
   const primaryGainControl = audioContext.createGain();
   primaryGainControl.gain.value = 1;
@@ -1167,5 +1054,150 @@ async function fetchClickSound(audioContext) {
 function decodeAudioData(audioContext, arrayBuffer) {
   return new Promise((resolve, reject) => {
     audioContext.decodeAudioData(arrayBuffer, resolve, reject);
+  });
+}
+
+// - 'Annotation list' and 'Edit' mode toggle switch
+/**
+ *  [Annotation drop down list & Delete] Change displayed annotation or delete selected
+ */
+function setupAnnotationListEvents() {
+  // On annotationList change, Clear previous & render the new selected annotation
+  annotationList.addEventListener('change', () => {
+    wavesurfer.clearMarkers();
+    wavesurfer.clearRegions();
+    console.log(jamsFile);
+    renderAnnotations(selectedAnnotationData(jamsFile));
+  });
+  deleteAnnotationBtn.addEventListener('click', () => {
+    deleteAnnotation();
+  });
+}
+
+/**
+ *  [Edit] Grants access to Edit mode and a set of tools designed for modifying selected annotations.
+ */
+function setupToggleEditEvent() {
+  toggleEditBtn.addEventListener('click', toggleEdit);
+}
+
+// - Annotation tools (toolbar)
+
+/**
+ * [Edit chord] allows modifying the selected chord (marker) by popping up a modal table with chord roots,variations and accidentals
+ */
+
+function setupEditChordEvents() {
+  // Edit selected chord onPressingEditChordButton (enables button)
+  wavesurfer.on('marker-click', enableEditChordButtonFunction);
+  wavesurfer.on('seek', disableEditChordButtonFunction);
+  editChordBtn.addEventListener('click', showChordEditor);
+
+  /* Chord Editor Modal related events: */
+  createTooltipsChordEditor(); // (This is not actually an event! It assigns the tooltips in the table)
+
+  chordEditor.addEventListener('click', event => {
+    // Proceed if click is on el with class Root, Accidental or Variation
+    if (event.target.tagName !== 'TD' && event.target.tagName !== 'TEXT') {
+      return;
+    }
+
+    // A loop to find the closest element with a class
+    let closestElementWithClass = event.target;
+    while (
+      closestElementWithClass &&
+      closestElementWithClass.className === ''
+    ) {
+      closestElementWithClass = closestElementWithClass.parentElement;
+    }
+    const selection = closestElementWithClass;
+    const component = closestElementWithClass.className;
+
+    select(selection, component);
+    editChord();
+  });
+
+  // cancel click
+  cancelBtn.addEventListener('click', () => {
+    editChord(true);
+    closeModal(true);
+  });
+
+  // apply click
+  applyBtn.addEventListener('click', () => {
+    // disableAnnotationList();
+    _disableAnnotationListAndDeleteAnnotation();
+    closeModal();
+  });
+}
+
+/**
+ *  [Save chords] Save chords stores changes made either as separate or replaced annotation (except original annotation)
+ */
+function setupSaveChordsEvent() {
+  saveChordsBtn.addEventListener('click', saveChords);
+}
+
+/**
+ *  [Cancel] Cancel reverts back without altering.
+ */
+function setupCancelEditingEvent() {
+  cancelEditingBtn.addEventListener('click', cancelEditingChords);
+}
+
+// - Annotation tools (waveform)
+
+/**
+ *  {waveform double click} Add beat at position (AND chord SAME as previous chord)
+ */
+function setupAddBeatAndChordEvent() {
+  //
+  wavesurfer.on('region-dblclick', addBeatAndChord);
+}
+
+/**
+ *  {waveform marker drag} Modify beat timing
+ */
+function setupEditBeatTimingEvents() {
+  wavesurfer.on('marker-drag', function (marker, e) {
+    editBeat(marker, e);
+  }); // used for styling
+  wavesurfer.on('marker-drop', editBeatTiming); // changes the beat
+}
+
+/**
+ *  {waveform marker right click} Remove marker (== remove chord AND beat at position)
+ */
+function setupRemoveBeatAndChordEvent() {
+  wavesurfer.on('marker-contextmenu', removeBeatAndChord);
+}
+// - OTHERS
+
+function setupDownloadJamsEvent() {
+  document.querySelector('#download-jams-btn').addEventListener('click', () => {
+    downloadJAMS(jamsFile);
+  });
+}
+
+function setupCalculateTempoEvent() {
+  //  Calculate tempo once in the start
+  calculateTempo(wavesurfer.markers.markers[0].duration);
+  // ..and now calculate beat for every region
+  wavesurfer.on('region-in', region => {
+    // console.log('Tempo:', 60 / (region.end - region.start));
+    const beatDuration = region.end - region.start;
+    calculateTempo(beatDuration);
+  });
+}
+
+// ..ON PROGRESS SHOW PREV or NEXT CHORD if LABEL not into view! TODO
+function setupShowPrevOrNextChordLabelWhenNotIntoView() {
+  wavesurfer.on('region-in', region => {
+    const prevChordValue = document.getElementById('prev-chord-value');
+    const nextChordValue = document.getElementById('next-chord-value');
+
+    checkMarkers(region);
+    // console.log(wavesurfer.markers.markers);
+    // displayedWaveformStartEndTime();
   });
 }

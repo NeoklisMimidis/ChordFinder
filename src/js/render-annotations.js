@@ -1,22 +1,19 @@
 'use strict';
 
-// Created wavesurfer instance from main.js
-import { wavesurfer } from './main.js';
+// Created wavesurfer instance from audio-player.js
+import { wavesurfer } from './audio-player.js';
 
 import {
-  editState,
+  editModeState,
   annotationList,
   deleteAnnotationBtn,
   resetToolbar,
 } from './edit-mode.js';
-import {
-  toolbarAndEditingRelatedEvents,
-  addMarkerEventSnapOnBeats,
-} from './edit-mode.js';
+import { toolbarAndEditingRelatedEvents } from './edit-mode.js';
 
 import { variations, accidentals, chordColor } from './components/mappings.js';
 import { createTippySingleton } from './components/tooltips.js';
-import { loadFile } from './components/utilities.js';
+import { loadFile, fileSelectHandlers } from './components/utilities.js';
 
 import {
   EDIT_MODE_ENABLED_STYLE,
@@ -28,6 +25,12 @@ import {
 
 export let jamsFile;
 
+// - Start of annotations visualization ||
+fileSelectHandlers('#analyze-chords-btn', loadJAMS, '.jams');
+
+//
+
+// -
 export function loadJAMS(input) {
   if (input === undefined) return;
   console.log('loadJams() input:', input);
@@ -53,6 +56,9 @@ export function loadJAMS(input) {
       // Render first annotation
       annotatedChordsAtBeatsData = selectedAnnotationData(jamsFile);
       renderAnnotations(annotatedChordsAtBeatsData);
+
+      // Assign the events for the toolbar and waveform
+      toolbarAndEditingRelatedEvents(wavesurfer);
     })
     .catch(error => {
       // Handle the error from any part of the promise chain
@@ -192,6 +198,11 @@ export function addMarkerAtTime(
   chordTextSpan.classList.add('d-none');
   // chordSymbolSpan.classList.add('d-none');
 
+  // allow pointer events ONLY on the label (from stylesheet CSS marker has 'none' pointer event)
+  wavesurfer.util.style(markerLabel, {
+    pointerEvents: 'auto',
+  });
+
   // Add and store mir format label as a property (for colorizing reasons)
   marker.mirLabel = label;
 
@@ -251,16 +262,11 @@ export function updateMarkerDisplayWithColorizedRegions(editModeStyle = false) {
     // Add a REGION for each wavesurfer.marker
     _colorizeChordRegion(marker);
 
-    addMarkerEventSnapOnBeats(marker);
-
     prevChord = marker.mirLabel;
   });
 
   // Re-enable tooltips
   markersSingleton.enable();
-
-  // The reason that the events for toolbar and waveform are
-  toolbarAndEditingRelatedEvents(wavesurfer);
 
   console.log('Chord regions have been successfully colorized! ✌️');
 }
@@ -408,7 +414,7 @@ function _setStyleOnMarker(marker, prevChord, index) {
   } else {
     wavesurfer.util.style(
       markerLine,
-      editState ? EDIT_MODE_ENABLED_STYLE : EDIT_MODE_DISABLED_STYLE
+      editModeState ? EDIT_MODE_ENABLED_STYLE : EDIT_MODE_DISABLED_STYLE
     );
   }
 
@@ -418,7 +424,7 @@ function _setStyleOnMarker(marker, prevChord, index) {
     markerLabel.style.marginLeft = '4px';
   }
   wavesurfer.util.style(markerLabel, {
-    pointerEvents: editState ? '' : 'none',
+    pointerEvents: editModeState ? 'auto' : 'none',
   });
 
   // c) Hide marker-labels depending on edit mode state
@@ -428,7 +434,7 @@ function _setStyleOnMarker(marker, prevChord, index) {
   const chordLabel = marker.mirLabel;
   if (chordLabel === 'N') {
     // Handle the No chord 'N' case || only visible on edit
-    if (editState) {
+    if (editModeState) {
       {
         chordTextSpan.classList.remove('invisible-up');
         chordSymbolSpan.classList.remove('invisible-up');
@@ -448,7 +454,7 @@ function _setStyleOnMarker(marker, prevChord, index) {
     }
 
     // 1st option (display labels & tooltip on edit)
-    if (editState) {
+    if (editModeState) {
       chordTextSpan.classList.toggle('invisible-up');
       chordSymbolSpan.classList.toggle('invisible-up');
     }
