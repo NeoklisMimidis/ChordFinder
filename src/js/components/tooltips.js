@@ -1,5 +1,13 @@
 // Creating beautiful tooltips!
-import tippy, { createSingleton, followCursor, animateFill } from 'tippy.js';
+import tippy, {
+  createSingleton,
+  delegate,
+  followCursor,
+  getReferenceClientRect,
+  animateFill,
+  inlinePositioning,
+  sticky,
+} from 'tippy.js';
 import 'tippy.js/dist/tippy.css';
 import 'tippy.js/themes/light.css';
 import 'tippy.js/themes/light-border.css';
@@ -10,10 +18,18 @@ import 'tippy.js/animations/scale-subtle.css';
 import 'tippy.js/dist/backdrop.css';
 import 'tippy.js/animations/shift-away.css';
 
+// delegate('#waveform', {
+//   target: '.wavesurfer-marker',
+//   content: 'This is the tooltip content.',
+//   delay: [0, 250],
+//   followCursor: 'horizontal',
+//   plugins: [followCursor],
+// });
+
 //  Set some default props for all instances
 tippy.setDefaultProps({
   allowHTML: true,
-  delay: [1500, 250],
+  // delay: [1500, 250], // TODO FIX
   hideOnClick: false,
   // animateFill removes arrow BUG
   // animateFill: true,
@@ -41,7 +57,6 @@ const centerToolbarControls = `The <strong>annotation list</strong> allows you t
 
 tippy('#center-toolbar-controls', {
   content: centerToolbarControls,
-  inlinePositioning: true,
   theme: 'translucent',
   // theme: 'light-border',
   // placement: 'right-start',
@@ -109,9 +124,9 @@ tippy('.fa-magnifying-glass-minus', {
   },
 });
 
-// Rewind || Play/Pause || Mute/Unmute
+// Stop || Play/Pause || Mute/Unmute
 tippy('.fa-backward-step', {
-  content: 'Rewind (0)',
+  content: 'Stop (0)',
   delay: [0, 0],
   // theme: 'translucent',
   placement: 'top',
@@ -146,6 +161,31 @@ tippy('.fa-pause', {
     tooltip.style.fontSize = '12px';
   },
 });
+tippy('.fa-backward', {
+  content: 'Backwards 5s (←)',
+  delay: [0, 0],
+  // theme: 'translucent',
+  placement: 'top',
+  arrow: false,
+  offset: [0, 30],
+  onShow: function (instance) {
+    const tooltip = instance.popper.querySelector('.tippy-content');
+    tooltip.style.fontSize = '12px';
+  },
+});
+tippy('.fa-forward', {
+  content: 'Forward 5s (→)',
+  delay: [0, 0],
+  // theme: 'translucent',
+  placement: 'top',
+  arrow: false,
+  offset: [0, 30],
+  onShow: function (instance) {
+    const tooltip = instance.popper.querySelector('.tippy-content');
+    tooltip.style.fontSize = '12px';
+  },
+});
+
 tippy('.fa-volume-high', {
   content: 'Mute (m)',
   delay: [0, 0],
@@ -170,8 +210,22 @@ tippy('.fa-volume-xmark', {
     tooltip.style.fontSize = '12px';
   },
 });
+
+tippy('.fa-circle', {
+  content: 'Enable recording (r)',
+  delay: [0, 0],
+  // theme: 'translucent',
+  placement: 'top',
+  arrow: false,
+  offset: [0, 30],
+  onShow: function (instance) {
+    const tooltip = instance.popper.querySelector('.tippy-content');
+    tooltip.style.fontSize = '12px';
+  },
+});
+
 tippy('.fa-repeat', {
-  content: 'Enable repeat (r)',
+  content: 'Enable loop (l)',
   delay: [0, 0],
   // theme: 'translucent',
   placement: 'top',
@@ -226,7 +280,6 @@ tippy('#audio-sidebar-text', {
  * }
  * @returns singleton
  */
-
 export function createTippySingleton(selector, tooltipDataAttribute, props) {
   let singleton;
 
@@ -253,8 +306,75 @@ export function createTippySingleton(selector, tooltipDataAttribute, props) {
   singleton.props.triggerTarget.forEach(el => {
     const tooltip = el.getAttribute(tooltipDataAttribute);
     el._tippy.setContent(tooltip);
-    el.singleton = singleton;
+    el.singleton = singleton; // Storing the Tippy.js singleton instance to every element part of the singleton.
   });
 
   return singleton;
 }
+
+// - Singletons styling
+// Tippy tooltips styling
+export const REGIONS_SINGLETON_PROPS = {
+  delay: [500, 250],
+  hideOnClick: false,
+  // moveTransition: 'transform 0.2s ease-out',
+  // animation: 'scale-subtle',
+  // interactive: true, // interactive BUGS
+
+  // placement: 'top',
+  // interactive: true,
+
+  placement: 'top',
+
+  // var rect = reference.getBoundingClientRect();
+
+  followCursor: 'true',
+  // followCursor: 'horizontal',
+
+  // followCursor: 'initial',
+  // offset: [
+  //   0,
+  //   instance =>
+  //     instance.popper
+  //       .querySelector('.tippy-content')
+  //       .reference.getBoundingClientRect().top,
+  // ],
+  // flip: false,
+  offset: [0],
+
+  // if (isCursorOverReference || !instance.props.interactive) {
+  //   instance.setProps({
+  //     // @ts-ignore - unneeded DOMRect properties
+  //     getReferenceClientRect: function getReferenceClientRect() {
+  //       var rect = reference.getBoundingClientRect();
+  //       var x = clientX;
+  //       var y = clientY;
+
+  //       if (followCursor === 'initial') {
+  //         x = rect.left + relativeX;
+  //         y = rect.top + relativeY;
+  //       }
+  plugins: [followCursor],
+
+  theme: 'custom',
+  onShow: function (instance) {
+    // Get the tooltip element
+    const tooltip = instance.popper.querySelector('.tippy-content');
+    tooltip.style.userSelect = 'none'; //disable text selection
+    tooltip.style.marginTop = '12px';
+  },
+};
+
+export const MODAL_SINGLETON_PROPS = {
+  delay: [500, 350],
+  moveTransition: 'transform 0.25s ease-out',
+  hideOnClick: false,
+  // interactive: false,
+  // content: reference => reference.getAttribute('data-modal-tooltip'),
+
+  // theme: 'custom',
+  // followCursor: true,
+  // plugins: [followCursor],
+  // trigger: 'click',
+  // interactive: true,
+};

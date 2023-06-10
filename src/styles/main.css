@@ -20,7 +20,10 @@
 
   --color-audio-player: #0abfff33;
   --color-waveform-background--1: #c9dee980;
-  --color-waveform-background--2: #a1d4f059;
+  /* --color-waveform-background--2: #a1d4f059; */
+  --color-waveform-background--2: #b5d8eb;
+  --color-waveform-background--3: #a9d2e3;
+  /* --color-waveform-background--3: #7ec2e7cd; */
 
   --color-marker-label: #0d6ab6cc;
   --color-marker-label-background: #d3d3d3b3;
@@ -192,9 +195,11 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 #waveform {
   width: 100%;
   background-color: var(--color-waveform-background--1);
+  /* background-color: greenyellow !important; */
   border-left: 1.5px solid black;
   border-right: 1.5px solid black;
   opacity: 1;
+  position: relative !important;
 }
 
 .drag-over {
@@ -227,16 +232,21 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
   background-color: var(--color-waveform-background--2);
 }
 
+/* minimap progress background color*/
+#waveform > minimap > wave > wave {
+  background-color: var(--color-waveform-background--3);
+}
+
 #waveform-bpm {
   font-size: 95%;
   position: absolute;
-  right: 9rem;
-  transform: translateY(-300%);
+  right: 1%;
+  bottom: 30%;
   padding: 0.15em;
   border-radius: 4px;
   box-shadow: 1px 1px 2px var(--color-dark--2);
   background-color: var(--color-light--2);
-  z-index: 5;
+  z-index: 6;
 }
 
 #waveform-prev-chord,
@@ -257,6 +267,92 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 #waveform-next-chord {
   right: 8.5rem;
 }
+
+/* // - */
+.skip-cue {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  width: 75px;
+  height: 75px;
+  border-radius: 50%;
+  color: white;
+  background-color: var(--color-dark--2);
+  opacity: 0.7;
+  font-size: 0.9em;
+  animation: fadeInOut 1s ease-out;
+  z-index: 10;
+  top: 12%;
+}
+
+#skip-forward {
+  display: none;
+  right: 1%;
+}
+#skip-backward {
+  display: none;
+  left: 1%;
+}
+
+.skip-cue-arrows i:nth-child(1) {
+  animation: fadeInOut1 1.2s ease-out infinite;
+}
+
+.skip-cue-arrows i:nth-child(2) {
+  animation: fadeInOut2 1.2s ease-out infinite;
+  animation-delay: 0.2s;
+}
+
+.skip-cue-arrows i:nth-child(3) {
+  animation: fadeInOut3 1.2s ease-out infinite;
+  animation-delay: 0.4s;
+}
+
+@keyframes fadeInOut1 {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeInOut2 {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeInOut3 {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.skip-cue-tooltip {
+  font-size: 72%;
+  /* font-weight: bold; */
+  font-family: Verdana, Manrope, sans-serif;
+}
+
+/* // - */
 
 /*  REGIONS  */
 .wavesurfer-region {
@@ -308,30 +404,69 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  padding: 10px;
+  padding: 5px;
   background-color: var(--color-audio-player);
   border: 1.5px solid var(--color-dark--1);
   border-bottom-left-radius: 10px;
   box-shadow: 0 2px 0.5px var(--color-dark--2);
+  font-family: Verdana, Manrope, sans-serif;
 }
 
 .player-controls > * {
   display: flex;
-  justify-content: center;
+  flex-wrap: wrap;
+  align-items: center;
+  /* gap: 1em; */
+}
+
+#left-player-controls {
+  flex-basis: 37%;
+  justify-content: flex-start;
+}
+
+#time-ruler-btn {
+  /* margin-left: auto; */
+  margin-left: 0.8em;
+  font-size: 160%;
+  color: var(--color-dark--2);
 }
 
 #center-player-controls {
-  gap: 1.8em;
-  margin-left: 6%;
+  flex-basis: 35%;
+  gap: 1.6em;
+  justify-content: center;
 }
 
 #right-player-controls {
-  gap: 0.2em;
-  margin-right: 1.1%;
+  flex-basis: 28%;
+  justify-content: space-evenly;
+}
+
+/* 
+  Normal transition: When appearing, there is a 0.5-second gradual opacity transition.
+  This gradual transition helps to avoid a buggy situation when both enabling 
+  and disabling autoscroll happen concurrently. If the no-opacity 
+  class is applied, the transition delay must be set to 0 for better user experience.
+*/
+#autoscroll-btn {
+  padding: 0.3em !important;
+  margin-right: auto;
+  border-radius: 1em;
+  box-shadow: 1px 1px 0px var(--color-dark--2);
+  color: var(--color-dark--2);
+  background-color: var(--color-highlight--2);
+  transition: opacity 0.5s;
+}
+#autoscroll-btn.no-opacity {
+  transition: opacity 0s !important;
 }
 
 .repeat-enabled {
   color: Teal;
+}
+
+.record-enabled {
+  animation: fa-fade 1s infinite;
 }
 
 .fa-play:hover {
@@ -408,8 +543,8 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 }
 
 .no-opacity {
-  opacity: 0;
-  pointer-events: none;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 .no-border {
@@ -419,7 +554,7 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 }
 
 .no-border:hover {
-  color: var(--color-highlight--3);
+  color: var(--color-highlight--3) !important;
 }
 
 /* disable pointer events for no-border disabled buttons */
@@ -508,17 +643,21 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 /* CLASSES CUSTOMIZING TOOLTIPS */
 /* ---------------------------- */
 .tippy-box[data-theme~='custom'] {
-  /* background-image: linear-gradient(to bottom right, #21c994, #94dd89); */
   background-image: linear-gradient(
     to bottom right,
     rgba(250, 242, 208, 1),
     rgb(144, 217, 244)
   );
-  opacity: 0.8;
-  /* background-color: tomato; */
-  /* color: burlywood; */
+  /* transition: opacity 0s !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important; */
+  /* transition: 0s; */
+  opacity: 0.95 !important;
   color: black;
 }
+/* background-color: tomato; */
+/* color: burlywood; */
+/* background-image: linear-gradient(to bottom right, #21c994, #94dd89); */
 
 /* ------------------------ */
 /* Styling webkit scrollbar */

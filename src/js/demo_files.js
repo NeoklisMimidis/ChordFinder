@@ -13,8 +13,7 @@ import annotationFile3 from 'url:../../demo_files/05_-_Here,_There_and_Everywher
 import audioFileURL4 from 'url:../../demo_files/14_-_Tomorrow_Never_Knows.wav';
 import annotationFile4 from 'url:../../demo_files/14_-_Tomorrow_Never_Knows.jams';
 
-const variableToEstablishConnection = '';
-export { variableToEstablishConnection };
+export let variableToEstablishConnection;
 
 // create a new select element
 const selectElement = document.createElement('select');
@@ -95,3 +94,8 @@ selectElement.addEventListener('change', event => {
 
 const demoFiles = document.querySelector('#demo-files-list');
 demoFiles.appendChild(selectElement);
+
+// Load one at
+setTimeout(() => {
+  loadFilesInOrder(audioFileURL3, annotationFile3);
+}, 500); //

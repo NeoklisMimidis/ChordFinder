@@ -2,17 +2,22 @@
 
 // Created wavesurfer instance from audio-player.js
 import { wavesurfer } from './audio-player.js';
+import { delegate } from 'tippy.js';
+
+import { toolbarAndEditingRelatedEvents } from './edit-mode.js';
 
 import {
-  editModeState,
   annotationList,
   deleteAnnotationBtn,
   resetToolbar,
-} from './edit-mode.js';
-import { toolbarAndEditingRelatedEvents } from './edit-mode.js';
+  editModeState,
+} from './annotation-tools/center-toolbar-tools.js';
 
 import { variations, accidentals, chordColor } from './components/mappings.js';
-import { createTippySingleton } from './components/tooltips.js';
+import {
+  createTippySingleton,
+  REGIONS_SINGLETON_PROPS,
+} from './components/tooltips.js';
 import { loadFile, fileSelectHandlers } from './components/utilities.js';
 
 import {
@@ -20,15 +25,10 @@ import {
   EDIT_MODE_DISABLED_STYLE,
   NEW_MARKER_STYLE,
   EDITED_MARKER_STYLE,
-  MARKERS_SINGLETON_PROPS,
 } from './config.js';
 
 export let jamsFile;
-
-// - Start of annotations visualization ||
-fileSelectHandlers('#analyze-chords-btn', loadJAMS, '.jams');
-
-//
+export let delegateInstance;
 
 // -
 export function loadJAMS(input) {
@@ -65,11 +65,6 @@ export function loadJAMS(input) {
       console.error(error);
       throw new Error('Failed to fetch JAMS file');
     });
-
-  // this check is helpful to avoid some tippy bugs (hanging tooltip) when loading a new annotation
-  if (wavesurfer.markers.markers[0]) {
-    wavesurfer.markers.markers[0].el.singleton.disable();
-  }
 
   console.log('Loading JAMS has been successfully completed! ✌️');
 
@@ -156,6 +151,35 @@ export function renderAnnotations(annotationData) {
   console.log('Markers have been successfully rendered! ✌️');
 
   updateMarkerDisplayWithColorizedRegions(true);
+
+  delegateInstance = initDelegateInstance();
+}
+
+function initDelegateInstance() {
+  const delegateInstance = delegate('#waveform > wave', {
+    target: '.wavesurfer-region',
+    delay: [0, 0],
+    duration: [0, 0],
+    placement: 'right-start',
+    content: reference => reference.getAttribute('data-regions-tooltip'),
+    followCursor: 'horizontal',
+    plugins: [followCursor],
+    theme: 'custom',
+    hideOnClick: false,
+    animation: 'none',
+    moveTransition: 0,
+    allowHTML: true,
+    maxWidth: '150px',
+    onShow: function (instance) {
+      // Get the tooltip element
+      const tooltip = instance.popper.querySelector('.tippy-content');
+      // Apply text selection behavior to the tooltip content
+      tooltip.style.userSelect = 'text';
+      tooltip.style.textAlign = '';
+    },
+  });
+
+  return delegateInstance[0];
 }
 
 export function addMarkerAtTime(
@@ -217,13 +241,10 @@ export function addMarkerAtTime(
     wavesurfer.util.style(markerLine, EDIT_MODE_ENABLED_STYLE);
   }
 
-  // Store tooltip as an HTML element data attribute (tippy step 1)
-  const tooltipContent = _createTooltipText(marker);
-  marker.el.setAttribute('data-markers-tooltip', tooltipContent);
-
   return marker;
 }
 
+import 'tippy.js/animations/scale-subtle.css';
 // CAREFUL:
 // this function MUST be called every time a marker is dragged, added, removed!
 export function updateMarkerDisplayWithColorizedRegions(editModeStyle = false) {
@@ -238,16 +259,6 @@ export function updateMarkerDisplayWithColorizedRegions(editModeStyle = false) {
   // Clear previous chord regions
   wavesurfer.clearRegions();
 
-  // Create a singleton: array of regular tippy instances(tippy step 2)
-  const markersSingleton = createTippySingleton(
-    '.wavesurfer-marker',
-    'data-markers-tooltip',
-    MARKERS_SINGLETON_PROPS
-  );
-
-  // Disable tooltips to update them without bugs
-  markersSingleton.disable();
-
   markers.forEach(function (marker, index) {
     // Set style on marker depending on edit state
     if (editModeStyle) {
@@ -260,13 +271,43 @@ export function updateMarkerDisplayWithColorizedRegions(editModeStyle = false) {
     _addDurationToMarker(marker, index, markers);
 
     // Add a REGION for each wavesurfer.marker
-    _colorizeChordRegion(marker);
+    _colorizeChordRegion(marker, index);
 
     prevChord = marker.mirLabel;
   });
 
+  // interactive: true,
+  // delay: [500, 250],
+  // moveTransition: 'shift',
+
+  // // // Create a singleton: array of regular tippy instances(tippy step 2)
+  // const regionsSingleton = createTippySingleton(
+  //   '.wavesurfer-region',
+  //   'data-regions-tooltip',
+  //   REGIONS_SINGLETON_PROPS
+  // );
+
   // Re-enable tooltips
-  markersSingleton.enable();
+  // regionsSingleton.enable();
+
+  // if (wavesurfer.markers.markers[0].delegateInstance) {
+  //   wavesurfer.markers.markers[0].delegateInstance[0].enable();
+  // }
+  if (delegateInstance) {
+    delegateInstance.enable();
+  }
+
+  // delegate('#waveform > wave', {
+  //   target: '.wavesurfer-region',
+  // });
+  // console.log(document.querySelector)
+
+  // delegate('#left-toolbar-controls', {
+  //   target: '.no-border',
+  //   content: 'This is the tooltip content.',
+  // });
+
+  // #waveform > wave > region:nth-child(194)
 
   console.log('Chord regions have been successfully colorized! ✌️');
 }
@@ -313,7 +354,12 @@ function _createTooltipText(marker) {
 
   tooltip = `🎶 ${rootNote}${accidental}  ${
     shorthand === 'maj' ? '' : ' '
-  }${tooltip}${bassNote !== '' ? '/' + bassNote : ''} 🎶`;
+  }${tooltip}${bassNote !== '' ? '/' + bassNote : ''}
+<br>Time: <span class="text-secondary">${marker.time}s</span>
+<br>Duration: <span class="text-secondary">${marker.duration}s</span>`;
+
+  // marker.duration
+  // marker.time
 
   return tooltip;
 }
@@ -488,10 +534,11 @@ function _addDurationToMarker(marker, index, markers) {
   // round a number to three decimal places //  needs testing because sometimes it leads BUGs with less decimals
   marker.duration = Math.round(duration * 1000) / 1000;
 }
+import tippy, { followCursor } from 'tippy.js';
 
-function _colorizeChordRegion(marker) {
+function _colorizeChordRegion(marker, index, delegateInstance) {
   // Add a REGION for each wavesurfer.marker
-  wavesurfer.addRegion({
+  const region = wavesurfer.addRegion({
     start: marker.time,
     end: marker.time + marker.duration,
     data: {
@@ -503,7 +550,30 @@ function _colorizeChordRegion(marker) {
     loop: false,
     drag: false,
     resize: false,
+    showTooltip: false,
+    id: index,
+    // show,
   });
+  // console.log(region.element);
+
+  // region.delegateInstance = delegateInstance;
+
+  // Store tooltip as an HTML element data attribute (tippy step 1)
+  const tooltipContent = _createTooltipText(marker);
+  region.element.setAttribute('data-regions-tooltip', tooltipContent);
+
+  // console.log(region.element);
+  // var element = document.querySelector('[data-id="2"]');
+  // console.log(element);
+
+  // tippy('[data-id="2"]', {
+  //   content: '123',
+  //   delay: [400, 100],
+  //   // placement: 'bottom',
+  //   followCursor: 'horizontal',
+  //   plugins: [followCursor],
+  //   // interactive: true,
+  // });
 }
 
 function _getChordColor(chordLabel) {

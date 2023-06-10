@@ -125,11 +125,29 @@
             <div id="wavetimeline"></div>
             <div id="waveform">
               <div class="drag-text">Drop the audio file here!</div>
+              <div id="waveform-bpm" class="d-none">
+                BPM <span id="tempo-value"></span>
+              </div>
+
+              <div id="skip-forward" class="skip-cue">
+                <div class="skip-cue-arrows">
+                  <i class="fa-solid fa-caret-right fa-xl"></i>
+                  <i class="fa-solid fa-caret-right fa-xl"></i>
+                  <i class="fa-solid fa-caret-right fa-xl"></i>
+                </div>
+                <div class="skip-cue-tooltip">5 seconds</div>
+              </div>
+              <div id="skip-backward" class="skip-cue">
+                <div class="skip-cue-arrows">
+                  <i class="fa-solid fa-caret-left fa-xl"></i>
+                  <i class="fa-solid fa-caret-left fa-xl"></i>
+                  <i class="fa-solid fa-caret-left fa-xl"></i>
+                </div>
+                <div class="skip-cue-tooltip">5 seconds</div>
+              </div>
             </div>
 
-            <div id="waveform-bpm" class="d-none">
-              BPM <span id="tempo-value"></span>
-            </div>
+            <!-- TODO on progress: -->
             <div id="waveform-prev-chord" class="d-none">
               a
               <span id="prev-chord-value"></span>
@@ -149,20 +167,42 @@
                   <i class="fa-solid fa-magnifying-glass-minus fa-xl"></i>
                   <div class="control-label no-padding">Zoom Out</div>
                 </button>
+                <button id="time-ruler-btn" class="no-border no-padding">
+                  <div>
+                    <span id="time-ruler-value">00:00.0</span>
+                    <span id="audio-duration-value">/ 00:00.0</span>
+                  </div>
+                </button>
               </div>
               <div id="center-player-controls">
-                <button id="rewind-btn" class="no-border disabled">
+                <button id="stop-btn" class="no-border disabled">
                   <i class="fa-solid fa-backward-step fa-lg"></i>
+                </button>
+                <button id="backward-btn" class="no-border disabled">
+                  <i class="fa-solid fa-backward fa-lg"></i>
                 </button>
                 <button id="play-pause-btn" class="no-border disabled">
                   <i class="fa-solid fa-play fa-2xl" style="color: #008000"></i>
                   <i class="fa-solid fa-pause fa-2xl d-none"></i>
+                </button>
+                <button id="forward-btn" class="no-border disabled">
+                  <i class="fa-solid fa-forward fa-lg"></i>
+                </button>
+                <button id="record-btn" class="no-border disabled">
+                  <i
+                    data-tippy-content=""
+                    class="fa-solid fa-circle fa-lg"
+                    style="color: #f70808"
+                  ></i>
                 </button>
                 <button id="repeat-btn" class="no-border disabled">
                   <i data-tippy-content="" class="fa-solid fa-repeat fa-lg"></i>
                 </button>
               </div>
               <div id="right-player-controls">
+                <button id="autoscroll-btn" class="no-padding no-opacity">
+                  <span>Enable autoscroll</span>
+                </button>
                 <button id="mute-unmute-btn" class="no-border disabled">
                   <i class="fa-solid fa-volume-xmark fa-lg d-none"></i>
                   <i class="fa-solid fa-volume-high fa-lg"></i>
@@ -204,9 +244,6 @@
         </div>
 
         <!--  Demo files testing -->
-        <!-- <div id="demo-files-list">
-          <span>Try with demo files ✌️</span>
-        </div> -->
         <div
           id="demo-files-list"
           style="

@@ -8,12 +8,15 @@ import timelinePlugin from 'wavesurfer.js/dist/plugin/wavesurfer.timeline.min.js
 import markersPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.markers.min.js';
 import minimapPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.minimap.min.js';
 
-import { renderModalMessage, isModalActive } from './edit-mode.js';
+import { isModalTableActive } from './annotation-tools/right-toolbar-tools.js';
+import { loadJAMS } from './render-annotations.js';
 
 import {
   loadFile,
   fileSelectHandlers,
   dragDropHandlers,
+  renderModalMessage,
+  isModalMessageOrPromptActive,
 } from './components/utilities.js';
 import { variableToEstablishConnection } from './demo_files.js';
 
@@ -25,19 +28,24 @@ if (module.hot) {
 }
 // // // // // // // // // // // // // // // // // // // // // // // // // // //
 
-// Now you are on dev branch. GIT OP!
-
 /* Elements */
 const waveform = document.querySelector('#waveform');
 const zoomInBtn = document.querySelector('#zoom-in-btn');
 const zoomOutBtn = document.querySelector('#zoom-out-btn');
+const timeRulerBtn = document.querySelector('#time-ruler-btn');
+const timeRulerValue = document.querySelector('#time-ruler-value');
+const audioDurationValue = document.querySelector('#audio-duration-value');
 
-const rewindBtn = document.querySelector('#rewind-btn');
+const stopBtn = document.querySelector('#stop-btn');
+const forwardBtn = document.querySelector('#forward-btn');
+const backwardBtn = document.querySelector('#backward-btn');
 const playPauseBtn = document.querySelector('#play-pause-btn');
 const playBtn = document.querySelector('#play-pause-btn .fa-play');
 const pauseBtn = document.querySelector('#play-pause-btn .fa-pause');
+const recordBtn = document.querySelector('#record-btn');
 const repeatBtn = document.querySelector('#repeat-btn');
 
+const autoScrollBtn = document.querySelector('#autoscroll-btn');
 const muteUnmuteBtn = document.querySelector('#mute-unmute-btn');
 const muteBtn = document.querySelector('#mute-unmute-btn .fa-volume-xmark');
 const unmuteBtn = document.querySelector('#mute-unmute-btn .fa-volume-high');
@@ -45,9 +53,15 @@ const volumeSlider = document.querySelector('.volume-slider');
 
 let fileName = 'Unknown'; // store prev filename on every import
 const minPxPerSec = 152;
-let repeatEnable = false;
+let repeatEnabled = false;
+let recordEnabled = false;
 let prevVolumeSliderValue = 0.5;
 let cleanStateAudioEvents = true; // this is used to avoid bugs that occur when a new audio file is loaded and events are assigned again.
+
+const skipForwardCue = document.getElementById('skip-forward');
+const skipBackwardCue = document.getElementById('skip-backward');
+let timeoutSkipForward; // This variable will hold the reference to the timeout
+let timeoutSkipBackward; // This variable will hold the reference to the timeout
 
 // - Start of the application ||
 
@@ -58,10 +72,11 @@ toggleAudioInOutControls();
 export let wavesurfer = initWavesurfer();
 
 // Handlers about selection or dragging the appropriate files for app initialization
+// a) Importing audio
 dragDropHandlers('#waveform', loadAudioFile, 'drag-over');
 fileSelectHandlers('#import-audio-btn', loadAudioFile);
-
-// fileSelectHandlers('#analyze-chords-btn', loadJAMS, '.jams');
+// b) Displaying annotation (JAMS)
+fileSelectHandlers('#analyze-chords-btn', loadJAMS, '.jams');
 
 // catching wavesurfer errors
 wavesurfer.on('error', function (error) {
@@ -69,6 +84,12 @@ wavesurfer.on('error', function (error) {
 });
 
 wavesurfer.on('ready', function () {
+  // / 00:00.0
+
+  const totalAudioDuration = formatTime(wavesurfer.getDuration());
+  const displayedTotalDuration = `/ ${totalAudioDuration}`;
+  audioDurationValue.textContent = displayedTotalDuration;
+
   console.log('Waveform ready! 👍');
 });
 
@@ -104,11 +125,13 @@ function initWavesurfer() {
       cursorPlugin.create({
         showTime: true,
         opacity: 1,
+        hideOnBlur: false,
         customShowTimeStyle: {
           backgroundColor: '#1996',
           color: '#fff',
           padding: '2px',
           'font-size': '10px',
+          transform: 'translate(0%, 150%)',
         },
       }),
       regionsPlugin.create(),
@@ -124,9 +147,11 @@ function initWavesurfer() {
         secondaryFontColor: 'black',
       }),
       minimapPlugin.create({
-        height: 30,
-        waveColor: '#777',
-        progressColor: '#999',
+        height: 20,
+        progressColor: '#777',
+        // progressColor: '#129',
+        // waveColor: '#B5D8EB',
+        waveColor: '#A3C1AD',
         cursorColor: '#999',
       }),
     ],
@@ -149,6 +174,10 @@ export function loadAudioFile(input) {
     wavesurfer.load(fileUrl);
     resetAudioPlayer();
     audioPlayerEvents();
+
+    if (file !== undefined) {
+      fileName = file.name;
+    }
     audioFileName.textContent = fileName.trim();
   }
 
@@ -159,9 +188,6 @@ export function loadAudioFile(input) {
       .then(() => {
         loadAudio();
         console.log(`New Audio imported while previous audio was NOT saved `);
-        if (file !== undefined) {
-          fileName = file.name;
-        }
       })
       .catch(() => {
         // User canceled
@@ -185,9 +211,15 @@ function audioPlayerEvents() {
   zoomInBtn.addEventListener('click', zoomIn);
   zoomOutBtn.addEventListener('click', zoomOut);
 
-  // play, pause & rewind functionalities
-  rewindBtn.addEventListener('click', rewind);
+  wavesurfer.on('audioprocess', timeRuler);
+  timeRulerBtn.addEventListener('click', timeRuler);
+
+  // play, pause & stop functionalities
+  stopBtn.addEventListener('click', stop);
+  backwardBtn.addEventListener('click', backward);
   playPauseBtn.addEventListener('click', playPause);
+  forwardBtn.addEventListener('click', forward);
+  recordBtn.addEventListener('click', record);
   repeatBtn.addEventListener('click', repeat);
 
   //  toggle on/off mute
@@ -196,16 +228,28 @@ function audioPlayerEvents() {
   // play/pause with space button if playback started
   document.addEventListener('keydown', keyboardPlayerEvents);
 
+  autoScrollBtn.addEventListener('click', enableAutoScroll);
+
   // change volume with a slider
   // volumeSlider.addEventListener('input', setVolumeWithSlider);
   volumeSlider.addEventListener('input', e =>
     setVolumeWithSlider(e.target.value)
   );
+
   // TODO there will be option switching between those 2 modes
   // ***1st mode with scrolling***
   // Starts with autoCenter. Disabling when clicking/moving scrollbar.
-  waveform.addEventListener('mousedown', function () {
+  const waveformOnlyNoMinimap = document.querySelector('#waveform > wave');
+  waveformOnlyNoMinimap.addEventListener('mousedown', () => {
     wavesurfer.params.autoCenter = false;
+  }); // this fixes the buggy situation of wavesurfer not able to use scroll while audio is playing
+  waveformOnlyNoMinimap.addEventListener('mouseup', () => {
+    autoScrollBtn.classList.remove('no-opacity');
+  });
+
+  wavesurfer.on('seek', () => {
+    console.log('seek!');
+    enableAutoScroll();
   });
 
   waveform.addEventListener('contextmenu', function (e) {
@@ -216,7 +260,7 @@ function audioPlayerEvents() {
   wavesurfer.on('finish', () => {
     console.log('finished!');
 
-    if (repeatEnable) {
+    if (repeatEnabled) {
       wavesurfer.seekTo(0);
       wavesurfer.play();
       console.log('Play again bcs repeat is on ! 😁');
@@ -227,11 +271,6 @@ function audioPlayerEvents() {
 
     // // if mode is scrolling then TODO
     // wavesurfer.params.autoCenter = true;
-  });
-
-  // Re-enable autoCenter when user interacts with waveform or minimap
-  wavesurfer.on('interaction', function () {
-    wavesurfer.params.autoCenter = true;
   });
 
   //  ***2nd mode with pageTurnPlayback*** (not complete yet!)
@@ -264,17 +303,24 @@ function resetAudioPlayer() {
     // and a small timeout for rendering reasons
     wavesurfer.zoom(minPxPerSec - 1);
   }, 5);
+  timeRulerBtn.classList.remove('disabled');
 
   // Center controls
-  rewindBtn.classList.remove('disabled');
+  stopBtn.classList.remove('disabled');
 
+  backwardBtn.classList.remove('disabled');
   playPauseBtn.classList.remove('disabled');
   playBtn.classList.remove('d-none');
   pauseBtn.classList.add('d-none');
+  forwardBtn.classList.remove('disabled');
+
+  recordBtn.classList.remove('disabled');
+  recordBtn.classList.remove('record-enabled');
+  recordEnabled = false;
 
   repeatBtn.classList.remove('disabled');
   repeatBtn.classList.remove('repeat-enabled');
-  repeatEnable = false;
+  repeatEnabled = false;
 
   muteUnmuteBtn.classList.remove('disabled');
   muteBtn.classList.add('d-none');
@@ -305,11 +351,52 @@ function zoomOut() {
   }
 }
 
-function rewind() {
+function timeRuler() {
+  // 00:00.0 (min):(sec).(deciseconds)
+  // TODO On press of timeRulerBtn change display to  bar beats e.g. (003 bar 04 beat)
+  // timeRulerBtn.
+
+  const currTime = formatTime(wavesurfer.getCurrentTime());
+  timeRulerValue.textContent = currTime;
+}
+
+function stop() {
   playBtn.classList.remove('d-none');
   pauseBtn.classList.add('d-none');
   wavesurfer.stop();
   wavesurfer.seekAndCenter(0);
+}
+
+function forward() {
+  wavesurfer.skipForward(5);
+
+  skipForwardCue.style.display = 'flex';
+
+  // Clear the previous timeout if it exists
+  if (timeoutSkipForward) {
+    clearTimeout(timeoutSkipForward);
+  }
+
+  // Set a new timeout
+  timeoutSkipForward = setTimeout(function () {
+    skipForwardCue.style.display = 'none';
+  }, 650);
+}
+
+function backward() {
+  wavesurfer.skipBackward(5);
+
+  skipBackwardCue.style.display = 'flex';
+
+  // Clear the previous timeout if it exists
+  if (timeoutSkipBackward) {
+    clearTimeout(timeoutSkipBackward);
+  }
+
+  // Set a new timeout
+  timeoutSkipBackward = setTimeout(function () {
+    skipBackwardCue.style.display = 'none';
+  }, 650);
 }
 
 function playPause() {
@@ -321,22 +408,39 @@ function playPause() {
   } else {
     wavesurfer.play();
   }
+
+  enableAutoScroll();
+}
+
+function record() {
+  const recordIcon = document.querySelector('.fa-circle');
+
+  // if not already enabled then  enable it
+  if (recordEnabled) {
+    recordEnabled = false;
+    recordBtn.classList.remove('record-enabled');
+    recordIcon._tippy.setContent('Enable recording (r)');
+  } else {
+    recordEnabled = true;
+    recordBtn.classList.add('record-enabled');
+    recordIcon._tippy.setContent('Disable recording (r)');
+  }
+
+  // TODO the rest of Viglis code goes here
 }
 
 function repeat() {
   const repeatIcon = document.querySelector('.fa-repeat');
 
   // if not already enabled then  enable it
-  if (repeatEnable) {
-    repeatEnable = false;
-    // repeatBtn.style.color = '';
+  if (repeatEnabled) {
+    repeatEnabled = false;
     repeatBtn.classList.remove('repeat-enabled');
-    repeatIcon._tippy.setContent('Enable repeat (r)');
+    repeatIcon._tippy.setContent('Enable loop (l)');
   } else {
-    repeatEnable = true;
-    // repeatBtn.style.color = 'Teal';
+    repeatEnabled = true;
     repeatBtn.classList.add('repeat-enabled');
-    repeatIcon._tippy.setContent('Disable repeat (r)');
+    repeatIcon._tippy.setContent('Disable loop (l)');
   }
 }
 
@@ -374,17 +478,17 @@ function setVolumeWithSlider(volumeValue) {
 }
 
 function keyboardPlayerEvents(event) {
-  if (isModalActive) return; // If the modal is active, don't execute the event listener
+  if (isModalMessageOrPromptActive || isModalTableActive) return; // If the modal is active, don't execute the event listener
   const key = event.code;
   if (key === 'Space') {
     event.preventDefault();
-    playPause(wavesurfer);
+    playPause();
   } else if (key === 'KeyM') {
     event.preventDefault();
-    muteUnmute(wavesurfer);
+    muteUnmute();
   } else if (key === 'Digit0' || key === 'Numpad0') {
     event.preventDefault();
-    rewind(wavesurfer);
+    stop();
   } else if (key === 'ArrowUp') {
     if (prevVolumeSliderValue === 1) return;
     event.preventDefault();
@@ -404,21 +508,25 @@ function keyboardPlayerEvents(event) {
   } else if (key === 'ArrowRight') {
     event.preventDefault();
     if (wavesurfer.getCurrentTime() < wavesurfer.getDuration() - 5) {
-      wavesurfer.skipForward(5);
+      forward();
     } else {
+      // this condition is used to avoid repeating the song again if not repeat enabled
       wavesurfer.pause();
       wavesurfer.seekTo(1);
     }
   } else if (key === 'ArrowLeft') {
     event.preventDefault();
-    wavesurfer.skipBackward(5);
+    backward();
   } else if (key === 'Equal' || key === 'NumpadAdd') {
     zoomIn();
   } else if (key === 'Minus' || key === 'NumpadSubtract') {
     zoomOut();
   } else if (key === 'KeyR') {
+    record();
+  } else if (key === 'KeyL') {
     repeat();
   } else {
+    console.log(wavesurfer.regions.list);
     //TODO remove just now for testing
     // calcParams();
     // displayedWaveformStartEndTime();
@@ -426,11 +534,6 @@ function keyboardPlayerEvents(event) {
 }
 
 function _initElementsState() {
-  // destroy previous tippy singleton instance
-  if (wavesurfer.markers.markers[0]) {
-    wavesurfer.markers.markers[0].el.singleton.destroy();
-  }
-
   // show preface audio help instructions
   document.querySelector('.preface-audio-help').classList.remove('d-none');
 
@@ -463,22 +566,52 @@ function _initElementsState() {
   zoomOutBtn.classList.add('disabled');
 
   // Center controls player
-  rewindBtn.classList.add('disabled');
+  stopBtn.classList.add('disabled');
+  backwardBtn.classList.add('disabled');
   playPauseBtn.classList.add('disabled');
-  muteUnmuteBtn.classList.add('disabled');
+  forwardBtn.classList.add('disabled');
+  recordBtn.classList.add('disabled');
   repeatBtn.classList.add('disabled');
 
   // Right controls player
+  muteUnmuteBtn.classList.add('disabled');
   volumeSlider.classList.add('disabled');
 
   // hide bpm, prev chord, next chord
   document.querySelector('#waveform-bpm').classList.add('d-none');
+
+  // prev chord, next chord not yet implemented TODO !
   document.querySelector('#waveform-prev-chord').classList.add('d-none');
   document.querySelector('#waveform-next-chord').classList.add('d-none');
 
   console.log('_initElementsState is complete 😁');
 }
 
+function enableAutoScroll() {
+  wavesurfer.params.autoCenter = true;
+  autoScrollBtn.classList.add('no-opacity');
+}
+
+/**
+ * Formats time in minutes, seconds and deciseconds to display the value on time-ruler-btn while audio is playing
+ *
+ * e.g. 169.2 seconds will become 2:49.1 (2min, 49seconds and 1 decisecond)
+ */
+function formatTime(seconds) {
+  seconds = Number(seconds);
+  const minutes = Math.floor(seconds / 60);
+  seconds %= 60;
+
+  const deciseconds = Math.floor((seconds % 1) * 10); // Extract deciseconds
+  const wholeSeconds = Math.floor(seconds); // Extract whole seconds
+
+  const paddedMinutes = String(minutes).padStart(2, '0');
+  const paddedSeconds = String(wholeSeconds).padStart(2, '0');
+
+  return `${paddedMinutes}:${paddedSeconds}.${deciseconds}`;
+}
+
+// - Functions for customization of Wavesurfer Timeline
 /**
  * Formats time in minutes and seconds with variable precision
  *
@@ -502,7 +635,9 @@ function formatTimeCallback(seconds, pxPerSec) {
   } else {
     secondsStr = seconds.toFixed(2);
   }
-  const decimalPart = secondsStr.split('.')[1];
+  const parts = secondsStr.split('.');
+  // join the rest of the parts starting from the second part
+  const decimalPart = parts.slice(1).join('.');
 
   return `${minutes}:${decimalPart}`;
 }
@@ -514,7 +649,7 @@ function _formatSecondsWithThreeDecimals(number) {
   if (lastNumber === '0') {
     return numberString.slice(0, -1);
   } else {
-    const formattedNumber = numberString.slice(0, -1) + ':' + lastNumber;
+    const formattedNumber = numberString.slice(0, -1) + '.' + lastNumber;
     return formattedNumber;
   }
 }
@@ -557,7 +692,8 @@ function pageTurnPlayback(currentTime) {
   // the view can only be  centered & immediate because seekAndCenter
   // for more options implement other custom seekAndCenter function
 
-  wavesurfer.params.autoCenter = false; // re-place it later with condition when switching modes
+  wavesurfer.params.autoCenter = false;
+  autoScrollBtn.classList.remove('no-opacity');
 
   // 'turn page' every 1/4 of the displayed (parentWidth) width
   const pageTurnThreshold = parentWidth / 4;
@@ -574,7 +710,6 @@ function pageTurnPlayback(currentTime) {
     pageTurnPosition += pageTurnThreshold;
     console.log(pageTurnPosition);
 
-    // wavesurfer.params.autoCenter = true;
     wavesurfer.seekAndCenter(progress);
   }
 }
