@@ -27,6 +27,11 @@
 
   --color-marker-label: #0d6ab6cc;
   --color-marker-label-background: #d3d3d3b3;
+  --color-region-highlight: #e77314cc;
+}
+
+.region-highlight {
+  background-color: var(--color-region-highlight) !important;
 }
 
 body {
@@ -153,7 +158,7 @@ h1 {
 }
 
 #toolbar .no-border:hover {
-  color: var(--color-highlight--5);
+  color: var(--color-highlight--5) !important;
 }
 
 .btn-edit-mode {
@@ -195,7 +200,6 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 #waveform {
   width: 100%;
   background-color: var(--color-waveform-background--1);
-  /* background-color: greenyellow !important; */
   border-left: 1.5px solid black;
   border-right: 1.5px solid black;
   opacity: 1;
@@ -363,6 +367,7 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 .wavesurfer-marker {
   z-index: 4 !important;
   pointer-events: none;
+  overflow: visible !important;
 }
 /* // - */
 .span-chord-text {
@@ -379,13 +384,10 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 }
 
 .span-chord-symbol {
-  display: flex !important;
-  /* flex-wrap: wrap; */
-  justify-content: center;
-  align-items: flex-start;
+  justify-content: flex-start;
+  transform: translate(5px, 5px);
   white-space: nowrap;
   height: 2rem;
-  transform: translateY(6px);
   border-radius: 0.3em;
   box-shadow: 2px 2px 0px var(--color-dark--2);
   color: var(--color-marker-label);
@@ -393,7 +395,10 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 }
 
 .marker-label svg {
-  margin-top: -15px;
+  margin-top: -22px;
+  position: absolute;
+  top: 15;
+  left: 0;
 }
 
 /* ----------------------------------- */

@@ -15,12 +15,11 @@ export const toggleClickTrackBtn = document.getElementById(
 
 let snapOnBeatsState = false;
 let clickTrackState = false;
+let currentRegion;
 let userInteractedWithWaveform = false;
 let isWebAudioInitialized = false;
 let clickBuffer; // Store into a variable the fetched click sound for repeated usage
 let [audioContext, primaryGainControl] = _initWebAudio();
-
-import { updateMarkerDisplayWithColorizedRegions } from '../render-annotations.js'; // prob remove on optimize TODO
 
 // -  Snap Beats & Click Track
 
@@ -37,7 +36,14 @@ export function setupSnapOnBeatsEvent() {
   });
 
   wavesurfer.on('region-click', (region, event) => {
+    // console.log(currentRegion)
+    // console.log(region)
     snapOnBeats(region.start, event);
+    if (currentRegion && clickTrackState) {
+      currentRegion.element.classList.remove('region-highlight');
+      region.element.classList.add('region-highlight');
+    }
+    currentRegion = region; // this is used for click track highligh region
   });
 }
 
@@ -46,48 +52,49 @@ export function setupSnapOnBeatsEvent() {
  * [Click Track]: create a click sound on every beat (===beat duration or respective region)
  *
  */
-
 export function setupClickTrackEvent() {
-  let prevColor;
-
-  // TODO 1) Optimize DONT USE updateMarkerDisplayWithColorizedRegions
-  // 2) reset functionality on every resetToolbar.. not only the displayed button
-
   console.log('🚀:', audioContext, '🚀:', primaryGainControl);
 
   toggleClickTrackBtn.addEventListener('click', () => {
     // Create toggle functionality for Click Track button
     [clickTrackState] = createToggle('#toggle-clickTrack-btn');
+
+    if (!currentRegion) {
+      currentRegion = wavesurfer.regions.list[0];
+    }
+    if (clickTrackState) {
+      currentRegion.element.classList.add('region-highlight');
+    } else {
+      // Clear any remaining highlight region in any way (don't use currentRegion.classList.remove('region-highlight') because it doesn't cover all the cases
+      Object.values(wavesurfer.regions.list).forEach(region => {
+        region.element.classList.remove('region-highlight');
+      });
+    }
   });
 
   //  This event is used to avoid buggy click sounds when user interacts in any way with the waveform (click, skip forwards/backwards, timeline etc)
   wavesurfer.on('interaction', () => {
-    // console.log('interaction');
     userInteractedWithWaveform = true;
   });
 
   wavesurfer.on('region-in', region => {
-    prevColor = region.color;
+    currentRegion.element.classList.remove('region-highlight');
+    currentRegion = region;
     if (!clickTrackState) return;
-    // highlight every beat
-    region.update((region.color = CLICK_TRACK_HIGHLIGHT_COLOR));
+    region.element.classList.add('region-highlight');
 
-    console.log(userInteractedWithWaveform);
     if (!userInteractedWithWaveform) clickTrack();
     userInteractedWithWaveform = false;
   });
   // revert back to default color when leaving a region
   wavesurfer.on('region-out', region => {
-    if (prevColor) {
-      region.update((region.color = prevColor));
-    }
+    region.element.classList.remove('region-highlight');
   });
 
   // CAREFUL! onpause also triggers on waveform seek (so now when on activate clickTrackState it also colorizes )
   wavesurfer.on('pause', () => {
     // Only in the case where annotations exist
     if (wavesurfer.markers.markers[0] && clickTrackState) {
-      updateMarkerDisplayWithColorizedRegions();
     }
   });
 }

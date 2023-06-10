@@ -28,7 +28,8 @@ export const EDITED_MARKER_STYLE = {
 };
 
 // Regions color while Click track activated
-export const CLICK_TRACK_HIGHLIGHT_COLOR = 'rgba(231, 115, 20, 0.8)';
+export const CLICK_TRACK_HIGHLIGHT_COLOR = 'rgba(231, 115, 20, 0.8)!important';
+// export const CLICK_TRACK_HIGHLIGHT_COLOR = 'var(--c)';
 
 // Table selection color
 export const TABLE_SELECTION_COLOR = 'tomato';

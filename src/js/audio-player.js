@@ -123,7 +123,7 @@ function initWavesurfer() {
 
     plugins: [
       cursorPlugin.create({
-        showTime: true,
+        showTime: false, //BUGGY with tooltips (false for now)
         opacity: 1,
         hideOnBlur: false,
         customShowTimeStyle: {

@@ -6,6 +6,8 @@ import {
   delegateInstance,
 } from '../render-annotations.js';
 
+import { _disableAnnotationListAndDeleteAnnotation } from '../edit-mode.js';
+
 import { editModeState } from './center-toolbar-tools.js';
 
 import { EDITED_MARKER_STYLE } from '../config.js';
@@ -105,18 +107,6 @@ function deleteMarker(marker) {
 
   // Update chord regions
   updateMarkerDisplayWithColorizedRegions();
-}
-
-export function _disableAnnotationListAndDeleteAnnotation() {
-  annotationList.classList.add('disabled');
-  deleteAnnotationBtn.classList.add('disabled');
-
-  saveChordsBtn.classList.remove('disabled');
-  cancelEditingBtn.classList.remove('disabled');
-
-  console.log(' _disableAnnotationListAndDeleteAnnotation');
-  document.querySelector('#toolbar').classList.add('editing-on');
-  console.log(document.querySelector('#toolbar'));
 }
 
 // - Annotation tools (waveform)

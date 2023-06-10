@@ -33,8 +33,29 @@ import { downloadJAMS } from './components/utilities.js';
 /* UI variables/states */
 let cleanStateAnnotationEvents = true; // this is used to avoid bugs that occur when a new annotation file is loaded and events are assigned again (so assigning events only on clean state).
 
+/* Elements */
+// Left controls
+const toggleSnapOnBeatsBtn = document.getElementById('toggle-SnapOnBeats-btn');
+const toggleClickTrackBtn = document.getElementById('toggle-clickTrack-btn');
+//  Center controls
+const annotationList = document.getElementById('annotation-list');
+const deleteAnnotationBtn = document.querySelector('#delete-annotation-btn');
+const toggleEditBtn = document.querySelector('#toggle-edit-btn');
+// Right controls & related Edit Mode Controls(Editing)
+const editModeTools = document.querySelector('#right-toolbar-controls');
+const audioFileName = document.querySelector('#audio-file-name');
+const editChordBtn = document.querySelector('#edit-chord-btn');
+const saveChordsBtn = document.querySelector('#save-chords-btn');
+const cancelEditingBtn = document.querySelector('#cancel-editing-btn');
+//  --Chord Editor table controls--
+const modalChordEditor = document.getElementById('show-chord-editor');
+const chordEditor = document.getElementById('chord-editor');
+const tableElements = document.querySelectorAll('#chord-editor td');
+const applyBtn = document.getElementById('apply-btn');
+const cancelBtn = document.getElementById('cancel-btn');
+
 // - EVENTS
-export function toolbarAndEditingRelatedEvents(wavesurfer) {
+export function toolbarAndEditingRelatedEvents() {
   /* Events (for editor) */
   if (!cleanStateAnnotationEvents) return;
 
@@ -81,6 +102,35 @@ export function toolbarAndEditingRelatedEvents(wavesurfer) {
 
   cleanStateAnnotationEvents = false;
   console.log('Event listeners for EDIT MODE ready! ⚡');
+}
+
+export function _disableSaveChordsAndCancelEditing() {
+  annotationList.classList.remove('disabled');
+
+  const selectedAnnotation = jamsFile.annotations[annotationList.selectedIndex];
+  const currDataSource = selectedAnnotation.annotation_metadata.data_source;
+
+  // ONLY remove IF not automatic analysis annotation
+  if (currDataSource !== 'program') {
+    deleteAnnotationBtn.classList.remove('disabled');
+  }
+
+  saveChordsBtn.classList.add('disabled');
+  cancelEditingBtn.classList.add('disabled');
+
+  document.querySelector('#toolbar').classList.remove('editing-on');
+}
+
+export function _disableAnnotationListAndDeleteAnnotation() {
+  annotationList.classList.add('disabled');
+  deleteAnnotationBtn.classList.add('disabled');
+
+  saveChordsBtn.classList.remove('disabled');
+  cancelEditingBtn.classList.remove('disabled');
+
+  console.log(' _disableAnnotationListAndDeleteAnnotation');
+  document.querySelector('#toolbar').classList.add('editing-on');
+  console.log(document.querySelector('#toolbar'));
 }
 
 // - OTHERS

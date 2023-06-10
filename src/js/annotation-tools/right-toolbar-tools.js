@@ -9,7 +9,10 @@ import {
   updateMarkerDisplayWithColorizedRegions,
 } from '../render-annotations.js';
 
-import { _disableAnnotationListAndDeleteAnnotation } from '../edit-mode.js';
+import {
+  _disableAnnotationListAndDeleteAnnotation,
+  _disableSaveChordsAndCancelEditing,
+} from '../edit-mode.js';
 
 import {
   setupEditChordEvents,
@@ -244,22 +247,6 @@ function _extractModalPromptFields() {
   return [annotatorName, annotationDataSource, annotationDescription];
 }
 
-function _disableSaveChordsAndCancelEditing() {
-  annotationList.classList.remove('disabled');
-
-  const selectedAnnotation = jamsFile.annotations[annotationList.selectedIndex];
-  const currDataSource = selectedAnnotation.annotation_metadata.data_source;
-
-  // ONLY remove IF not automatic analysis annotation
-  if (currDataSource !== 'program') {
-    deleteAnnotationBtn.classList.remove('disabled');
-  }
-
-  saveChordsBtn.classList.add('disabled');
-  cancelEditingBtn.classList.add('disabled');
-
-  document.querySelector('#toolbar').classList.remove('editing-on');
-}
 // -
 function enableEditChordButtonFunction(selMarker) {
   console.log('selected marker:', selMarker);
