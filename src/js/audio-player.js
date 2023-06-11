@@ -49,7 +49,7 @@ const autoScrollBtn = document.querySelector('#autoscroll-btn');
 const muteUnmuteBtn = document.querySelector('#mute-unmute-btn');
 const muteBtn = document.querySelector('#mute-unmute-btn .fa-volume-xmark');
 const unmuteBtn = document.querySelector('#mute-unmute-btn .fa-volume-high');
-const volumeSlider = document.querySelector('.volume-slider');
+const volumeSlider = document.querySelector('#volume-slider');
 
 let fileName = 'Unknown'; // store prev filename on every import
 const minPxPerSec = 152;
@@ -62,6 +62,8 @@ const skipForwardCue = document.getElementById('skip-forward');
 const skipBackwardCue = document.getElementById('skip-backward');
 let timeoutSkipForward; // This variable will hold the reference to the timeout
 let timeoutSkipBackward; // This variable will hold the reference to the timeout
+
+const playerControls = document.querySelector('.player-controls');
 
 // - Start of the application ||
 
@@ -118,6 +120,8 @@ function initWavesurfer() {
     partialRender: true,
     cursorWidth: 2,
     barWidth: 2,
+    normalize: true,
+    // height: 128, // (default==128)
     // cursorColor: '#9e7215',
     // hideScrollbar: true,
 
@@ -207,49 +211,59 @@ function audioPlayerEvents() {
   if (!cleanStateAudioEvents) return;
 
   /* Events (for audio player) */
-  // Zoom in/out events
-  zoomInBtn.addEventListener('click', zoomIn);
-  zoomOutBtn.addEventListener('click', zoomOut);
+  playerControls.addEventListener('click', function (e) {
+    console.log('P.M. from bonobo master 🤣');
+    console.log(e.target);
 
+    // left audio player controls
+    if (e.target.closest('#zoom-in-btn')) {
+      zoomIn();
+    } else if (e.target.closest('#zoom-out-btn')) {
+      zoomOut();
+    } else if (e.target.closest('#time-ruler-btn')) {
+      timeRuler();
+      // Center audio player controls
+    } else if (e.target.closest('#stop-btn')) {
+      stop();
+    } else if (e.target.closest('#backward-btn')) {
+      backward();
+    } else if (e.target.closest('#play-pause-btn')) {
+      playPause();
+    } else if (e.target.closest('#forward-btn')) {
+      forward();
+    } else if (e.target.closest('#record-btn')) {
+      record();
+    } else if (e.target.closest('#repeat-btn')) {
+      repeat();
+      // Right audio player controls
+    } else if (e.target.closest('#autoscroll-btn')) {
+      enableAutoScroll();
+    } else if (e.target.closest('#mute-unmute-btn')) {
+      muteUnmute();
+    } else if (e.target.closest('#volume-slider')) {
+      setVolumeWithSlider(e.target.value);
+    }
+  });
+
+  // attach Keyboard Shortcuts to keyboard events
+  document.addEventListener('keydown', keyboardAudioPlayerShortcuts);
+
+  /* Events (for audio player) */
   wavesurfer.on('audioprocess', timeRuler);
-  timeRulerBtn.addEventListener('click', timeRuler);
-
-  // play, pause & stop functionalities
-  stopBtn.addEventListener('click', stop);
-  backwardBtn.addEventListener('click', backward);
-  playPauseBtn.addEventListener('click', playPause);
-  forwardBtn.addEventListener('click', forward);
-  recordBtn.addEventListener('click', record);
-  repeatBtn.addEventListener('click', repeat);
-
-  //  toggle on/off mute
-  muteUnmuteBtn.addEventListener('click', muteUnmute);
-
-  // play/pause with space button if playback started
-  document.addEventListener('keydown', keyboardPlayerEvents);
-
-  autoScrollBtn.addEventListener('click', enableAutoScroll);
-
-  // change volume with a slider
-  // volumeSlider.addEventListener('input', setVolumeWithSlider);
-  volumeSlider.addEventListener('input', e =>
-    setVolumeWithSlider(e.target.value)
-  );
 
   // TODO there will be option switching between those 2 modes
   // ***1st mode with scrolling***
   // Starts with autoCenter. Disabling when clicking/moving scrollbar.
   const waveformOnlyNoMinimap = document.querySelector('#waveform > wave');
-  waveformOnlyNoMinimap.addEventListener('mousedown', () => {
-    wavesurfer.params.autoCenter = false;
-  }); // this fixes the buggy situation of wavesurfer not able to use scroll while audio is playing
-  waveformOnlyNoMinimap.addEventListener('mouseup', () => {
-    autoScrollBtn.classList.remove('no-opacity');
-  });
+  waveformOnlyNoMinimap.addEventListener(
+    'mousedown',
+    disableAutoScrollWhenDraggingScrollbar
+  );
 
   wavesurfer.on('seek', () => {
     console.log('seek!');
     enableAutoScroll();
+    timeRuler();
   });
 
   waveform.addEventListener('contextmenu', function (e) {
@@ -293,9 +307,10 @@ function resetAudioPlayer() {
   document.querySelector('#analyze-chords-btn').classList.remove('disabled');
   document.querySelector('#toolbar').classList.remove('d-none');
 
+  // Re-enable player controls (new audio file is loaded)
+  playerControls.classList.remove('disabled');
+
   // Left controls
-  zoomInBtn.classList.remove('disabled');
-  zoomOutBtn.classList.remove('disabled');
   // also go back to default zoom level (+ with a gimmick)
   // this is a gimmick trick that is used to avoid the problem with the waveform not rendering if user imports the same audio file wavesurfer.load()
   wavesurfer.zoom(minPxPerSec + 1);
@@ -303,33 +318,23 @@ function resetAudioPlayer() {
     // and a small timeout for rendering reasons
     wavesurfer.zoom(minPxPerSec - 1);
   }, 5);
-  timeRulerBtn.classList.remove('disabled');
 
   // Center controls
-  stopBtn.classList.remove('disabled');
-
-  backwardBtn.classList.remove('disabled');
-  playPauseBtn.classList.remove('disabled');
   playBtn.classList.remove('d-none');
   pauseBtn.classList.add('d-none');
-  forwardBtn.classList.remove('disabled');
 
-  recordBtn.classList.remove('disabled');
   recordBtn.classList.remove('record-enabled');
   recordEnabled = false;
 
-  repeatBtn.classList.remove('disabled');
   repeatBtn.classList.remove('repeat-enabled');
   repeatEnabled = false;
 
-  muteUnmuteBtn.classList.remove('disabled');
   muteBtn.classList.add('d-none');
   unmuteBtn.classList.remove('d-none');
 
   // Right controls
   volumeSlider.value = 0.5;
   wavesurfer.setVolume(0.5);
-  volumeSlider.classList.remove('disabled');
 
   console.log('resetAudioPlayer is complete 😁');
 }
@@ -477,7 +482,7 @@ function setVolumeWithSlider(volumeValue) {
   wavesurfer.setVolume(volumeValue);
 }
 
-function keyboardPlayerEvents(event) {
+function keyboardAudioPlayerShortcuts(event) {
   if (isModalMessageOrPromptActive || isModalTableActive) return; // If the modal is active, don't execute the event listener
   const key = event.code;
   if (key === 'Space') {
@@ -537,6 +542,9 @@ function _initElementsState() {
   // show preface audio help instructions
   document.querySelector('.preface-audio-help').classList.remove('d-none');
 
+  // Disable audio player controls while loading new audio file
+  playerControls.classList.add('disabled');
+
   // Reset markers,regions & waveform
   wavesurfer.clearMarkers();
   wavesurfer.clearRegions();
@@ -561,22 +569,6 @@ function _initElementsState() {
   document.querySelector('#analyze-chords-btn').classList.add('disabled');
   document.querySelector('#download-jams-btn').classList.add('disabled');
 
-  // Left controls player
-  zoomInBtn.classList.add('disabled');
-  zoomOutBtn.classList.add('disabled');
-
-  // Center controls player
-  stopBtn.classList.add('disabled');
-  backwardBtn.classList.add('disabled');
-  playPauseBtn.classList.add('disabled');
-  forwardBtn.classList.add('disabled');
-  recordBtn.classList.add('disabled');
-  repeatBtn.classList.add('disabled');
-
-  // Right controls player
-  muteUnmuteBtn.classList.add('disabled');
-  volumeSlider.classList.add('disabled');
-
   // hide bpm, prev chord, next chord
   document.querySelector('#waveform-bpm').classList.add('d-none');
 
@@ -590,6 +582,39 @@ function _initElementsState() {
 function enableAutoScroll() {
   wavesurfer.params.autoCenter = true;
   autoScrollBtn.classList.add('no-opacity');
+}
+
+function disableAutoScroll() {
+  if (wavesurfer.getCurrentTime() === 0) return;
+  wavesurfer.params.autoCenter = false;
+  autoScrollBtn.classList.remove('no-opacity');
+}
+
+function disableAutoScrollWhenDraggingScrollbar(e) {
+  // Check if scrollbar is active by comparing visible parent container width and waveform original width (in pixels)
+  const parentWidth = wavesurfer.drawer.getWidth();
+  let waveformOriginalWidth =
+    wavesurfer.getDuration() * wavesurfer.params.minPxPerSec;
+
+  if (waveformOriginalWidth <= parentWidth) return; // return if no scrollbar active
+
+  // Now we need to determine if the click was from the scrollbar. To do that we can use the scrollbar height:
+  // a)
+  // calculating the click position from the top of the element
+  let clickPositionFromTop = e.offsetY;
+
+  // get the total height of the element
+  let elementHeight = e.target.offsetHeight;
+
+  // calculate the click position from the bottom of the element
+  let clickPositionFromBottom = elementHeight - clickPositionFromTop;
+
+  // b) we also need to count in cases of regions where the tagName is region so we have to check the tagName
+
+  // T.L.D.R. : If click is on 'WAVE' tag and within 16px from bottom (scrollbar area), then execute the following code.
+  if (e.target.tagName === 'WAVE' && clickPositionFromBottom <= 16) {
+    disableAutoScroll();
+  }
 }
 
 /**
@@ -692,8 +717,7 @@ function pageTurnPlayback(currentTime) {
   // the view can only be  centered & immediate because seekAndCenter
   // for more options implement other custom seekAndCenter function
 
-  wavesurfer.params.autoCenter = false;
-  autoScrollBtn.classList.remove('no-opacity');
+  disableAutoScroll();
 
   // 'turn page' every 1/4 of the displayed (parentWidth) width
   const pageTurnThreshold = parentWidth / 4;

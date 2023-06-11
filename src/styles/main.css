@@ -30,10 +30,6 @@
   --color-region-highlight: #e77314cc;
 }
 
-.region-highlight {
-  background-color: var(--color-region-highlight) !important;
-}
-
 body {
   height: 100vh;
   background: var(--color-gradient--1);
@@ -206,6 +202,12 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
   position: relative !important;
 }
 
+/* Displayed waveform + scrollbar (NO MINIMAP)*/
+/* 128 is the default height given in wavesurfer params, where 18px is the scrollbar.*/
+#waveform > wave {
+  position: relative !important;
+}
+
 .drag-over {
   position: relative;
   animation: fa-fade 1s infinite;
@@ -245,7 +247,8 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
   font-size: 95%;
   position: absolute;
   right: 1%;
-  bottom: 30%;
+  top: 50%;
+  height: 20%;
   padding: 0.15em;
   border-radius: 4px;
   box-shadow: 1px 1px 2px var(--color-dark--2);
@@ -361,6 +364,10 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 /*  REGIONS  */
 .wavesurfer-region {
   z-index: 1 !important;
+}
+
+.region-highlight {
+  background-color: var(--color-region-highlight) !important;
 }
 
 /* MARKERS */
@@ -670,6 +677,7 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 ::-webkit-scrollbar {
   -webkit-appearance: none;
   width: 7px;
+  height: 18px;
 }
 ::-webkit-scrollbar-thumb {
   border-radius: 4px;
@@ -680,19 +688,31 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 
 ::-webkit-scrollbar-button:horizontal:start:decrement {
   display: block;
-  width: 20px;
-  height: 20px;
-  /* background-color: gray; */
+  width: 18px;
+  height: 18px;
   background-color: rgb(197, 224, 226);
-  border-radius: 20px;
+  border-radius: 16px;
   background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"%3E%3Cpolygon fill="%23000" points="2,8 10,0 10,16" transform="rotate(0 8 8)" /%3E%3C/svg%3E');
 }
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-dark--2);
+}
+
+::-webkit-scrollbar-button:horizontal:start:decrement:hover,
+::-webkit-scrollbar-button:horizontal:end:increment:hover {
+  background-color: var(--color-highlight--3);
+}
+
 ::-webkit-scrollbar-button:horizontal:end:increment {
   display: block;
-  width: 20px;
-  height: 20px;
-  /* background-color: gray; */
+  width: 18px;
+  height: 18px;
   background-color: rgb(197, 224, 226);
-  border-radius: 20px;
+  border-radius: 16px;
   background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"%3E%3Cpolygon fill="%23000" points="2,8 10,0 10,16" transform="rotate(180 8 8)" /%3E%3C/svg%3E');
 }
+
+/*  A FEW NOTES ABOUT STYLING WEBKIT SCROLLBAR:
+It's important to remember that styling scrollbars using the ::-webkit-scrollbar pseudo-elements only affects Webkit-based browsers and will not work in all browsers, like Firefox or Internet Explorer. For universal cross-browser scrollbar customization, you might have to use a JavaScript-based custom scrollbar library like perfect-scrollbar, SimpleBar, etc.
+*/

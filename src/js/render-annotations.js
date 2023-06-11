@@ -169,7 +169,7 @@ function initDelegateInstance() {
     animation: 'none',
     moveTransition: 0,
     allowHTML: true,
-    maxWidth: '150px',
+    maxWidth: '180px',
     onShow: function (instance) {
       // Get the tooltip element
       const tooltip = instance.popper.querySelector('.tippy-content');

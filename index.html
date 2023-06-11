@@ -157,13 +157,13 @@
               <span id="next-chord-value"></span>
             </div>
 
-            <div class="player-controls">
+            <div class="player-controls disabled">
               <div id="left-player-controls">
-                <button id="zoom-in-btn" class="no-border no-padding disabled">
+                <button id="zoom-in-btn" class="no-border no-padding">
                   <i class="fa-solid fa-magnifying-glass-plus fa-xl"></i>
                   <div class="control-label no-padding">Zoom In</div>
                 </button>
-                <button id="zoom-out-btn" class="no-border no-padding disabled">
+                <button id="zoom-out-btn" class="no-border no-padding">
                   <i class="fa-solid fa-magnifying-glass-minus fa-xl"></i>
                   <div class="control-label no-padding">Zoom Out</div>
                 </button>
@@ -175,27 +175,27 @@
                 </button>
               </div>
               <div id="center-player-controls">
-                <button id="stop-btn" class="no-border disabled">
+                <button id="stop-btn" class="no-border">
                   <i class="fa-solid fa-backward-step fa-lg"></i>
                 </button>
-                <button id="backward-btn" class="no-border disabled">
+                <button id="backward-btn" class="no-border">
                   <i class="fa-solid fa-backward fa-lg"></i>
                 </button>
-                <button id="play-pause-btn" class="no-border disabled">
+                <button id="play-pause-btn" class="no-border">
                   <i class="fa-solid fa-play fa-2xl" style="color: #008000"></i>
                   <i class="fa-solid fa-pause fa-2xl d-none"></i>
                 </button>
-                <button id="forward-btn" class="no-border disabled">
+                <button id="forward-btn" class="no-border">
                   <i class="fa-solid fa-forward fa-lg"></i>
                 </button>
-                <button id="record-btn" class="no-border disabled">
+                <button id="record-btn" class="no-border">
                   <i
                     data-tippy-content=""
                     class="fa-solid fa-circle fa-lg"
                     style="color: #f70808"
                   ></i>
                 </button>
-                <button id="repeat-btn" class="no-border disabled">
+                <button id="repeat-btn" class="no-border">
                   <i data-tippy-content="" class="fa-solid fa-repeat fa-lg"></i>
                 </button>
               </div>
@@ -203,17 +203,17 @@
                 <button id="autoscroll-btn" class="no-padding no-opacity">
                   <span>Enable autoscroll</span>
                 </button>
-                <button id="mute-unmute-btn" class="no-border disabled">
+                <button id="mute-unmute-btn" class="no-border">
                   <i class="fa-solid fa-volume-xmark fa-lg d-none"></i>
                   <i class="fa-solid fa-volume-high fa-lg"></i>
                 </button>
                 <input
+                  id="volume-slider"
                   type="range"
                   min="0"
                   max="1"
                   step="0.05"
                   value="1"
-                  class="volume-slider disabled"
                 />
               </div>
             </div>

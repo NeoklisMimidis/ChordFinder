@@ -97,5 +97,5 @@ demoFiles.appendChild(selectElement);
 
 // Load one at
 setTimeout(() => {
-  loadFilesInOrder(audioFileURL3, annotationFile3);
+  loadFilesInOrder(audioFileURL1, annotationFile1);
 }, 500); //

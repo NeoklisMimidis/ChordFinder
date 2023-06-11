@@ -36,8 +36,6 @@ export function setupSnapOnBeatsEvent() {
   });
 
   wavesurfer.on('region-click', (region, event) => {
-    // console.log(currentRegion)
-    // console.log(region)
     snapOnBeats(region.start, event);
     if (currentRegion && clickTrackState) {
       currentRegion.element.classList.remove('region-highlight');
@@ -78,10 +76,11 @@ export function setupClickTrackEvent() {
   });
 
   wavesurfer.on('region-in', region => {
-    currentRegion.element.classList.remove('region-highlight');
+    if (clickTrackState) {
+      currentRegion.element.classList.remove('region-highlight');
+      region.element.classList.add('region-highlight');
+    }
     currentRegion = region;
-    if (!clickTrackState) return;
-    region.element.classList.add('region-highlight');
 
     if (!userInteractedWithWaveform) clickTrack();
     userInteractedWithWaveform = false;
