@@ -117,8 +117,10 @@ export function setupToggleEditEvent() {
 
 // -
 export function resetToolbar() {
-  // hide preface annotation help
-  document.querySelector('.preface-annotation-help').classList.add('d-none');
+  // hide preface annotation bar(help + audio file name)
+  document.querySelector('.preface-annotation-bar').classList.add('d-none');
+
+  document.querySelector('#toolbar').classList.remove('d-none');
 
   // enable other edit related options
   document.querySelector('#left-toolbar-controls').classList.remove('d-none');

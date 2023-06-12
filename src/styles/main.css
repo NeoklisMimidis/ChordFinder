@@ -71,7 +71,7 @@ h1 {
 /* --------------------- */
 #toolbar,
 .preface-audio-help,
-.preface-annotation-help {
+.preface-annotation-bar {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-around;
@@ -88,12 +88,22 @@ h1 {
   font-family: Verdana, Manrope, Great Vibes, sans-serif;
 }
 
-.preface-annotation-help {
-  width: 65% !important;
-  transform: translate(0%) !important;
+.preface-annotation-bar > * {
+  justify-content: space-around !important;
+  display: flex;
+  align-items: center;
+}
+
+#preface-annotation-help {
+  flex: 0.65;
+}
+
+#audio-file-name-preface {
+  flex: 0.3;
 }
 
 /* class for all 3, left + center + right toolbar-controls  */
+.preface-annotation-bar > *,
 .toolbar-controls {
   background-color: var(--color-toolbar-controls);
   padding: 0.5rem 0.5rem;
@@ -124,7 +134,8 @@ h1 {
   justify-content: center;
 }
 
-#audio-file-name {
+#audio-file-name,
+#audio-file-name-preface {
   white-space: nowrap;
 }
 

@@ -29,42 +29,66 @@ if (module.hot) {
 // // // // // // // // // // // // // // // // // // // // // // // // // // //
 
 /* Elements */
-const waveform = document.querySelector('#waveform');
-const zoomInBtn = document.querySelector('#zoom-in-btn');
-const zoomOutBtn = document.querySelector('#zoom-out-btn');
-const timeRulerBtn = document.querySelector('#time-ruler-btn');
-const timeRulerValue = document.querySelector('#time-ruler-value');
-const audioDurationValue = document.querySelector('#audio-duration-value');
+// Audio player bar controls
+const playerControls = document.querySelector('.player-controls');
 
-const stopBtn = document.querySelector('#stop-btn');
-const forwardBtn = document.querySelector('#forward-btn');
-const backwardBtn = document.querySelector('#backward-btn');
-const playPauseBtn = document.querySelector('#play-pause-btn');
-const playBtn = document.querySelector('#play-pause-btn .fa-play');
-const pauseBtn = document.querySelector('#play-pause-btn .fa-pause');
-const recordBtn = document.querySelector('#record-btn');
-const repeatBtn = document.querySelector('#repeat-btn');
+// a) Left
+const zoomInBtn = playerControls.querySelector('#zoom-in-btn');
+const zoomOutBtn = playerControls.querySelector('#zoom-out-btn');
+const timeRulerBtn = playerControls.querySelector('#time-ruler-btn');
+const timeRulerValue = timeRulerBtn.querySelector('#time-ruler-value');
+const audioDurationValue = timeRulerBtn.querySelector('#audio-duration-value');
+// a) Center
+const stopBtn = playerControls.querySelector('#stop-btn');
+const backwardBtn = playerControls.querySelector('#backward-btn');
+const playPauseBtn = playerControls.querySelector('#play-pause-btn');
+const playBtn = playPauseBtn.querySelector('.fa-play');
+const pauseBtn = playPauseBtn.querySelector('.fa-pause');
+const forwardBtn = playerControls.querySelector('#forward-btn');
+const recordBtn = playerControls.querySelector('#record-btn');
+const repeatBtn = playerControls.querySelector('#repeat-btn');
+// a) Right
+const autoScrollBtn = playerControls.querySelector('#autoscroll-btn');
+const muteUnmuteBtn = playerControls.querySelector('#mute-unmute-btn');
+const muteBtn = muteUnmuteBtn.querySelector('.fa-volume-xmark');
+const unmuteBtn = muteUnmuteBtn.querySelector('.fa-volume-high');
+const volumeSlider = playerControls.querySelector('#volume-slider');
 
-const autoScrollBtn = document.querySelector('#autoscroll-btn');
-const muteUnmuteBtn = document.querySelector('#mute-unmute-btn');
-const muteBtn = document.querySelector('#mute-unmute-btn .fa-volume-xmark');
-const unmuteBtn = document.querySelector('#mute-unmute-btn .fa-volume-high');
-const volumeSlider = document.querySelector('#volume-slider');
+// Toolbar & pre-face instructions bars
+const prefaceAudioHelp = document.querySelector('.preface-audio-help');
+const prefaceAnnotationBar = document.querySelector('.preface-annotation-bar');
+const audioFileNamePreface = document.getElementById('audio-file-name-preface');
+const toolbar = document.getElementById('toolbar');
+const saveChordsBtn = toolbar.querySelector('#save-chords-btn');
+const audioFileName = toolbar.querySelector('#audio-file-name');
+// Waveform
+const mainWaveform = document.getElementById('waveform');
+const skipForwardCue = mainWaveform.querySelector('#skip-forward');
+const skipBackwardCue = mainWaveform.querySelector('#skip-backward');
+const mainWaveformBPM = mainWaveform.querySelector('#waveform-bpm');
+const mainWaveformPrevChord = mainWaveform.querySelector(
+  '#waveform-prev-chord'
+);
+const mainWaveformNextChord = mainWaveform.querySelector(
+  '#waveform-next-chord'
+);
+// Audio I/O (Sidebar)
+const audioSidebarText = document.getElementById('audio-sidebar-text');
+const audioSidebarControls = document.getElementById('audio-sidebar-controls');
+const analyzeChordsBtn = document.getElementById('analyze-chords-btn');
+const downloadJAMSBtn = document.getElementById('download-jams-btn');
 
+// Extract selectors IN TOOLTIPS.JS TODO
+
+// State variables
 let fileName = 'Unknown'; // store prev filename on every import
 const minPxPerSec = 152;
 let repeatEnabled = false;
 let recordEnabled = false;
-let prevVolumeSliderValue = 0.5;
+let prevVolumeSliderValue = 0.5; // also initial volume slider value
 let cleanStateAudioEvents = true; // this is used to avoid bugs that occur when a new audio file is loaded and events are assigned again.
-
-const skipForwardCue = document.getElementById('skip-forward');
-const skipBackwardCue = document.getElementById('skip-backward');
-let timeoutSkipForward; // This variable will hold the reference to the timeout
-let timeoutSkipBackward; // This variable will hold the reference to the timeout
-
-const playerControls = document.querySelector('.player-controls');
-
+let timeoutSkipForward;
+let timeoutSkipBackward;
 // - Start of the application ||
 
 // Init Sidebar (toggle) AUDIO I/O functionality
@@ -97,11 +121,6 @@ wavesurfer.on('ready', function () {
 
 // -
 function toggleAudioInOutControls() {
-  const audioSidebarText = document.getElementById('audio-sidebar-text');
-  const audioSidebarControls = document.getElementById(
-    'audio-sidebar-controls'
-  );
-
   audioSidebarText.addEventListener('click', e => {
     audioSidebarControls.classList.toggle('shown');
     audioSidebarText.classList.toggle('shown');
@@ -160,15 +179,11 @@ function initWavesurfer() {
       }),
     ],
   });
-
   return wavesurfer;
 }
 
 export function loadAudioFile(input) {
   if (input === undefined) return;
-
-  const saveChordsBtn = document.querySelector('#save-chords-btn');
-  const audioFileName = document.querySelector('#audio-file-name');
 
   let saveState = saveChordsBtn.classList.contains('disabled');
   const [fileUrl, file] = loadFile(input);
@@ -182,7 +197,9 @@ export function loadAudioFile(input) {
     if (file !== undefined) {
       fileName = file.name;
     }
-    audioFileName.textContent = fileName.trim();
+
+    audioFileNamePreface.textContent = fileName.trim();
+    audioFileName.textContent = audioFileNamePreface.textContent;
   }
 
   if (file && !saveState) {
@@ -211,63 +228,24 @@ function audioPlayerEvents() {
   if (!cleanStateAudioEvents) return;
 
   /* Events (for audio player) */
-  playerControls.addEventListener('click', function (e) {
-    console.log('P.M. from bonobo master 🤣');
-    console.log(e.target);
-
-    // left audio player controls
-    if (e.target.closest('#zoom-in-btn')) {
-      zoomIn();
-    } else if (e.target.closest('#zoom-out-btn')) {
-      zoomOut();
-    } else if (e.target.closest('#time-ruler-btn')) {
-      timeRuler();
-      // Center audio player controls
-    } else if (e.target.closest('#stop-btn')) {
-      stop();
-    } else if (e.target.closest('#backward-btn')) {
-      backward();
-    } else if (e.target.closest('#play-pause-btn')) {
-      playPause();
-    } else if (e.target.closest('#forward-btn')) {
-      forward();
-    } else if (e.target.closest('#record-btn')) {
-      record();
-    } else if (e.target.closest('#repeat-btn')) {
-      repeat();
-      // Right audio player controls
-    } else if (e.target.closest('#autoscroll-btn')) {
-      enableAutoScroll();
-    } else if (e.target.closest('#mute-unmute-btn')) {
-      muteUnmute();
-    } else if (e.target.closest('#volume-slider')) {
-      setVolumeWithSlider(e.target.value);
-    }
-  });
+  playerControls.addEventListener('click', audioPlayerControls);
 
   // attach Keyboard Shortcuts to keyboard events
   document.addEventListener('keydown', keyboardAudioPlayerShortcuts);
 
-  /* Events (for audio player) */
+  // update time ruler while audio is playing
   wavesurfer.on('audioprocess', timeRuler);
 
-  // TODO there will be option switching between those 2 modes
-  // ***1st mode with scrolling***
-  // Starts with autoCenter. Disabling when clicking/moving scrollbar.
-  const waveformOnlyNoMinimap = document.querySelector('#waveform > wave');
-  waveformOnlyNoMinimap.addEventListener(
-    'mousedown',
-    disableAutoScrollWhenDraggingScrollbar
-  );
+  // prevent default behavior of left click (showing Windows menu)
+  mainWaveform.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+  });
 
+  // enable autoscroll & update time ruler when user (clicks waveform, minimap, skips forward e.t.c.)
   wavesurfer.on('seek', () => {
     console.log('seek!');
     enableAutoScroll();
     timeRuler();
-  });
-
-  waveform.addEventListener('contextmenu', function (e) {
-    e.preventDefault();
   });
 
   // on finish change PLAY button
@@ -287,6 +265,16 @@ function audioPlayerEvents() {
     // wavesurfer.params.autoCenter = true;
   });
 
+  // ***1st mode of audio playback with scrolling bar***
+  // Starts with autoCenter. Disabling when clicking/moving scrollbar.
+  const waveformOnlyNoMinimap = mainWaveform.querySelector('wave'); // this is created from wavesurfer.js programmatically when wavesurfer instance is created (DON'T MOVE TO TOP WITH OTHER ELEMENTS)
+  waveformOnlyNoMinimap.addEventListener(
+    'mousedown',
+    disableAutoScrollWhenDraggingScrollbar
+  );
+
+  // TODO there will be one more way of viewing playback which is pageTurnPlayback
+  // (there will be option switching between those 2 modes)
   //  ***2nd mode with pageTurnPlayback*** (not complete yet!)
   // // FIXME/TODO moving the slider? not disables PlaybackPageTurn || also not yet count zoom possibilities
   // wavesurfer.on('audioprocess', currentTime => {
@@ -300,12 +288,11 @@ function audioPlayerEvents() {
 
 function resetAudioPlayer() {
   // hide audio importing description
-  document.querySelector('.preface-audio-help').classList.add('d-none');
-  document.querySelector('.preface-annotation-help').classList.remove('d-none');
+  prefaceAudioHelp.classList.add('d-none');
+  prefaceAnnotationBar.classList.remove('d-none');
 
   // enable analyze button
-  document.querySelector('#analyze-chords-btn').classList.remove('disabled');
-  document.querySelector('#toolbar').classList.remove('d-none');
+  analyzeChordsBtn.classList.remove('disabled');
 
   // Re-enable player controls (new audio file is loaded)
   playerControls.classList.remove('disabled');
@@ -333,13 +320,95 @@ function resetAudioPlayer() {
   unmuteBtn.classList.remove('d-none');
 
   // Right controls
-  volumeSlider.value = 0.5;
-  wavesurfer.setVolume(0.5);
+  volumeSlider.value = prevVolumeSliderValue;
+  wavesurfer.setVolume(prevVolumeSliderValue);
 
   console.log('resetAudioPlayer is complete 😁');
 }
 
-function zoomIn() {
+function audioPlayerControls(e) {
+  console.log('P.M. from bonobo master 🤣');
+  console.log(e.target);
+
+  // left audio player controls
+  if (e.target.closest('#zoom-in-btn')) {
+    zoomIn(e);
+  } else if (e.target.closest('#zoom-out-btn')) {
+    zoomOut(e);
+  } else if (e.target.closest('#time-ruler-btn')) {
+    timeRuler(e);
+    // Center audio player controls
+  } else if (e.target.closest('#stop-btn')) {
+    stop(e);
+  } else if (e.target.closest('#backward-btn')) {
+    backward(e);
+  } else if (e.target.closest('#play-pause-btn')) {
+    playPause(e);
+  } else if (e.target.closest('#forward-btn')) {
+    forward(e);
+  } else if (e.target.closest('#record-btn')) {
+    record(e);
+  } else if (e.target.closest('#repeat-btn')) {
+    repeat(e);
+    // Right audio player controls
+  } else if (e.target.closest('#autoscroll-btn')) {
+    enableAutoScroll(e);
+  } else if (e.target.closest('#mute-unmute-btn')) {
+    muteUnmute(e);
+  } else if (e.target.closest('#volume-slider')) {
+    setVolumeWithSlider(e.target.value);
+  }
+}
+
+function keyboardAudioPlayerShortcuts(e) {
+  if (isModalMessageOrPromptActive || isModalTableActive) return; // If the modal is active, don't execute the event listener
+  const key = e.code;
+  if (key === 'Space') {
+    e.preventDefault();
+    playPause(e);
+  } else if (key === 'KeyM') {
+    e.preventDefault();
+    muteUnmute(e);
+  } else if (key === 'Digit0' || key === 'Numpad0') {
+    e.preventDefault();
+    stop(e);
+  } else if (key === 'ArrowUp') {
+    if (prevVolumeSliderValue === 1) return;
+    e.preventDefault();
+    setVolumeWithSliderShortcut(+0.05);
+  } else if (key === 'ArrowDown') {
+    if (prevVolumeSliderValue === 0) return;
+    e.preventDefault();
+    setVolumeWithSliderShortcut(-0.05);
+  } else if (key === 'ArrowRight') {
+    e.preventDefault();
+    if (wavesurfer.getCurrentTime() < wavesurfer.getDuration() - 5) {
+      forward(e);
+    } else {
+      // this condition is used to avoid repeating the song again if not repeat enabled
+      wavesurfer.pause();
+      wavesurfer.seekTo(1);
+    }
+  } else if (key === 'ArrowLeft') {
+    e.preventDefault();
+    backward(e);
+  } else if (key === 'Equal' || key === 'NumpadAdd') {
+    zoomIn(e);
+  } else if (key === 'Minus' || key === 'NumpadSubtract') {
+    zoomOut(e);
+  } else if (key === 'KeyR') {
+    record(e);
+  } else if (key === 'KeyL') {
+    repeat(e);
+  } else {
+    console.log(wavesurfer.regions.list);
+    //TODO remove just now for testing
+    // calcParams();
+    // displayedWaveformStartEndTime();
+  }
+}
+
+function zoomIn(e) {
   wavesurfer.zoom(wavesurfer.params.minPxPerSec * 2);
   zoomOutBtn.classList.remove('disabled');
 
@@ -348,7 +417,7 @@ function zoomIn() {
   }
 }
 
-function zoomOut() {
+function zoomOut(e) {
   wavesurfer.zoom(wavesurfer.params.minPxPerSec / 2);
   zoomInBtn.classList.remove('disabled');
   if (wavesurfer.params.minPxPerSec <= 50) {
@@ -356,7 +425,7 @@ function zoomOut() {
   }
 }
 
-function timeRuler() {
+function timeRuler(e) {
   // 00:00.0 (min):(sec).(deciseconds)
   // TODO On press of timeRulerBtn change display to  bar beats e.g. (003 bar 04 beat)
   // timeRulerBtn.
@@ -365,14 +434,14 @@ function timeRuler() {
   timeRulerValue.textContent = currTime;
 }
 
-function stop() {
+function stop(e) {
   playBtn.classList.remove('d-none');
   pauseBtn.classList.add('d-none');
   wavesurfer.stop();
   wavesurfer.seekAndCenter(0);
 }
 
-function forward() {
+function forward(e) {
   wavesurfer.skipForward(5);
 
   skipForwardCue.style.display = 'flex';
@@ -382,13 +451,16 @@ function forward() {
     clearTimeout(timeoutSkipForward);
   }
 
+  // Hide the BACKWARD cue if there
+  skipBackwardCue.style.display = 'none';
+
   // Set a new timeout
   timeoutSkipForward = setTimeout(function () {
     skipForwardCue.style.display = 'none';
   }, 650);
 }
 
-function backward() {
+function backward(e) {
   wavesurfer.skipBackward(5);
 
   skipBackwardCue.style.display = 'flex';
@@ -397,6 +469,8 @@ function backward() {
   if (timeoutSkipBackward) {
     clearTimeout(timeoutSkipBackward);
   }
+  // Hide the FORWARD cue if there
+  skipForwardCue.style.display = 'none';
 
   // Set a new timeout
   timeoutSkipBackward = setTimeout(function () {
@@ -404,7 +478,7 @@ function backward() {
   }, 650);
 }
 
-function playPause() {
+function playPause(e) {
   playBtn.classList.toggle('d-none');
   pauseBtn.classList.toggle('d-none');
 
@@ -417,8 +491,8 @@ function playPause() {
   enableAutoScroll();
 }
 
-function record() {
-  const recordIcon = document.querySelector('.fa-circle');
+function record(e) {
+  const recordIcon = e.target.closest('.fa-circle');
 
   // if not already enabled then  enable it
   if (recordEnabled) {
@@ -434,8 +508,8 @@ function record() {
   // TODO the rest of Viglis code goes here
 }
 
-function repeat() {
-  const repeatIcon = document.querySelector('.fa-repeat');
+function repeat(e) {
+  const repeatIcon = e.target.closest('.fa-repeat');
 
   // if not already enabled then  enable it
   if (repeatEnabled) {
@@ -449,7 +523,7 @@ function repeat() {
   }
 }
 
-function muteUnmute() {
+function muteUnmute(e) {
   const muted = muteBtn.classList.contains('d-none');
   if (muted) {
     volumeSlider.value = 0;
@@ -482,65 +556,17 @@ function setVolumeWithSlider(volumeValue) {
   wavesurfer.setVolume(volumeValue);
 }
 
-function keyboardAudioPlayerShortcuts(event) {
-  if (isModalMessageOrPromptActive || isModalTableActive) return; // If the modal is active, don't execute the event listener
-  const key = event.code;
-  if (key === 'Space') {
-    event.preventDefault();
-    playPause();
-  } else if (key === 'KeyM') {
-    event.preventDefault();
-    muteUnmute();
-  } else if (key === 'Digit0' || key === 'Numpad0') {
-    event.preventDefault();
-    stop();
-  } else if (key === 'ArrowUp') {
-    if (prevVolumeSliderValue === 1) return;
-    event.preventDefault();
-    const newVolumeSliderValue = parseFloat(
-      (prevVolumeSliderValue + 0.05).toFixed(2)
-    );
-    setVolumeWithSlider(newVolumeSliderValue);
-    volumeSlider.value = newVolumeSliderValue;
-  } else if (key === 'ArrowDown') {
-    if (prevVolumeSliderValue === 0) return;
-    event.preventDefault();
-    const newVolumeSliderValue = parseFloat(
-      (prevVolumeSliderValue - 0.05).toFixed(2)
-    );
-    setVolumeWithSlider(newVolumeSliderValue);
-    volumeSlider.value = newVolumeSliderValue;
-  } else if (key === 'ArrowRight') {
-    event.preventDefault();
-    if (wavesurfer.getCurrentTime() < wavesurfer.getDuration() - 5) {
-      forward();
-    } else {
-      // this condition is used to avoid repeating the song again if not repeat enabled
-      wavesurfer.pause();
-      wavesurfer.seekTo(1);
-    }
-  } else if (key === 'ArrowLeft') {
-    event.preventDefault();
-    backward();
-  } else if (key === 'Equal' || key === 'NumpadAdd') {
-    zoomIn();
-  } else if (key === 'Minus' || key === 'NumpadSubtract') {
-    zoomOut();
-  } else if (key === 'KeyR') {
-    record();
-  } else if (key === 'KeyL') {
-    repeat();
-  } else {
-    console.log(wavesurfer.regions.list);
-    //TODO remove just now for testing
-    // calcParams();
-    // displayedWaveformStartEndTime();
-  }
+function setVolumeWithSliderShortcut(stepValue) {
+  const newVolumeSliderValue = parseFloat(
+    (prevVolumeSliderValue + stepValue).toFixed(2)
+  );
+  setVolumeWithSlider(newVolumeSliderValue);
+  volumeSlider.value = newVolumeSliderValue;
 }
 
 function _initElementsState() {
   // show preface audio help instructions
-  document.querySelector('.preface-audio-help').classList.remove('d-none');
+  prefaceAudioHelp.classList.remove('d-none');
 
   // Disable audio player controls while loading new audio file
   playerControls.classList.add('disabled');
@@ -551,30 +577,18 @@ function _initElementsState() {
   wavesurfer.empty();
 
   // Edit options controls
-  document.querySelector('#toolbar').classList.add('d-none');
-  document.querySelector('#left-toolbar-controls').classList.add('d-none');
-  document.querySelector('#center-toolbar-controls').classList.add('d-none');
-  const editModeTools = document.querySelector('#right-toolbar-controls');
-  editModeTools.querySelectorAll('.btn-edit-mode').forEach(button => {
-    button.classList.add('d-none');
-  });
-  const audioFileName = document.querySelector('#audio-file-name');
-  audioFileName.classList.remove('d-none');
-  audioFileName.classList.add('pointer-events-disabled');
-  // removing editing color
-  document.querySelector('#toolbar').classList.remove('editing-on');
-  document.querySelector('#info-question').classList.add('d-none');
+  toolbar.classList.add('d-none'); //hide toolbar
+  toolbar.classList.remove('editing-on'); // removing editing color
 
   // Audio I/O
-  document.querySelector('#analyze-chords-btn').classList.add('disabled');
-  document.querySelector('#download-jams-btn').classList.add('disabled');
+  analyzeChordsBtn.classList.add('disabled');
+  downloadJAMSBtn.classList.add('disabled');
 
   // hide bpm, prev chord, next chord
-  document.querySelector('#waveform-bpm').classList.add('d-none');
-
+  mainWaveformBPM.classList.add('d-none');
   // prev chord, next chord not yet implemented TODO !
-  document.querySelector('#waveform-prev-chord').classList.add('d-none');
-  document.querySelector('#waveform-next-chord').classList.add('d-none');
+  // mainWaveformPrevChord.classList.add('d-none');
+  // mainWaveformNextChord.classList.add('d-none');
 
   console.log('_initElementsState is complete 😁');
 }
@@ -739,8 +753,7 @@ function pageTurnPlayback(currentTime) {
 }
 
 function calcParams() {
-  let waveformElement = document.getElementById('waveform');
-  let style = window.getComputedStyle(waveformElement);
+  let style = window.getComputedStyle(mainWaveform);
   let width = parseInt(style.width, 10);
   console.log(width);
 
@@ -794,15 +807,4 @@ function displayedWaveformStartEndTime() {
   console.log('End time: ' + endTime);
 
   return [startTime, endTime];
-}
-
-function bringToFrontWavesurferCursor() {
-  // cursor line
-  const cursor = document.querySelector('#waveform > wave > wave');
-  cursor.style.zIndex = 6;
-  // cursor duration text
-  const cursorCurrentTimeText = document.querySelector(
-    '#waveform > wave > showtitle'
-  );
-  cursorCurrentTimeText.style.zIndex = 6;
 }
