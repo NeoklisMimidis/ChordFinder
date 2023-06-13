@@ -189,6 +189,9 @@ function saveChords() {
     .then(choice => {
       const newAnnotation = _createNewAnnotation();
 
+      // this needs to be before updateMarkerDisplayWithColorizedRegions so visualizations are rendered correctly
+      _disableSaveChordsAndCancelEditing();
+
       console.log(newAnnotation);
       if (choice === 'replace') {
         // Replace existing annotation
@@ -201,8 +204,6 @@ function saveChords() {
         index = annotationList.length;
         updateMarkerDisplayWithColorizedRegions(true);
       }
-
-      _disableSaveChordsAndCancelEditing();
 
       // In the annotation list include information about modification date! TODO
       createAnnotationsList(jamsFile);

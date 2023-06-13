@@ -138,6 +138,7 @@ export function resetToolbar() {
   toolbarStates.EDIT_MODE = false; // this will affect the rendering of the new annotation with updateMarkerDisplayWithColorizedRegions()
   toolbarStates.SNAP_ON_BEATS = false;
   toolbarStates.CLICK_TRACK = false;
+  toolbarStates.SAVED = true;
   console.log(toolbarStates);
   annotationList.classList.remove('disabled');
   resetToggle('#toggle-edit-btn');

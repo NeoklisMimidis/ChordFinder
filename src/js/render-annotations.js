@@ -31,10 +31,10 @@ import {
 } from './config.js';
 
 export let jamsFile;
+
 export let tooltips = {
-  markers: '',
-  regions: '',
   markersSingleton: '',
+  regions: '',
 };
 // -
 export function loadJAMS(input) {
