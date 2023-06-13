@@ -48,7 +48,7 @@ body {
 h1 {
   font-family: Helvetica, Arial, sans-serif;
   font-size: 4.5vw;
-  padding: 2.5rem 0 1.5rem;
+  padding: 2.7rem 0 1.5rem;
   text-align: center;
   color: transparent;
   background: var(--color-gradient--2);
@@ -675,7 +675,7 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
   transition-duration: 0s !important;
   transition-delay: 0s !important; */
   /* transition: 0s; */
-  opacity: 0.95 !important;
+  opacity: 0.8 !important;
   color: black;
 }
 /* background-color: tomato; */

@@ -12,7 +12,7 @@ import {
 import {
   _disableAnnotationListAndDeleteAnnotation,
   _disableSaveChordsAndCancelEditing,
-} from '../edit-mode.js';
+} from '../annotation-tools.js';
 
 import {
   setupEditChordEvents,
@@ -22,14 +22,11 @@ import {
 
 import { MARKER_LABEL_SPAN_COLOR, TABLE_SELECTION_COLOR } from '../config.js';
 
-import {
-  createTippySingleton,
-  MODAL_SINGLETON_PROPS,
-} from '../components/tooltips.js';
 import { variations, accidentals } from '../components/mappings.js';
 
 import {
   areObjectsEqual,
+  stripHtmlTags,
   renderModalMessage,
   renderModalPrompt,
 } from '../components/utilities.js';
@@ -70,6 +67,74 @@ let chord = {
   },
 };
 
+// - Annotation tools (toolbar)
+
+/**
+ * [Edit chord] allows modifying the selected chord (marker) by popping up a modal table with chord roots,variations and accidentals
+ */
+export function setupEditChordEvents() {
+  // Edit selected chord onPressingEditChordButton (enables button)
+  wavesurfer.on('marker-click', enableEditChordButtonFunction);
+  wavesurfer.on('seek', disableEditChordButtonFunction);
+  editChordBtn.addEventListener('click', showChordEditor);
+
+  // /* Chord Editor Modal related events: */
+  // createTooltipsChordEditor(); // (This is not actually an event! It assigns the tooltips in the table)
+
+  chordEditor.addEventListener('click', event => {
+    // Proceed if click is on el with class Root, Accidental or Variation
+    if (event.target.tagName !== 'TD' && event.target.tagName !== 'TEXT') {
+      return;
+    }
+
+    // A loop to find the closest element with a class
+    let closestElementWithClass = event.target;
+    while (
+      closestElementWithClass &&
+      closestElementWithClass.className === ''
+    ) {
+      closestElementWithClass = closestElementWithClass.parentElement;
+    }
+    const selection = closestElementWithClass;
+    const component = closestElementWithClass.className;
+
+    select(selection, component);
+    editChord();
+    // Also colorize background of new selected chord for better usability
+    lastSelectedMarker.elChordSymbolSpan.style.backgroundColor =
+      ' var(--color-highlight--2)';
+    lastSelectedMarker.elChordTextSpan.style.backgroundColor =
+      ' var(--color-highlight--2)';
+  });
+
+  // cancel click
+  cancelBtn.addEventListener('click', () => {
+    editChord(true);
+    closeModal(true);
+  });
+
+  // apply click
+  applyBtn.addEventListener('click', () => {
+    // disableAnnotationList();
+    _disableAnnotationListAndDeleteAnnotation();
+    closeModal();
+  });
+}
+
+/**
+ *  [Save chords] Save chords stores changes made either as separate or replaced annotation (except original annotation)
+ */
+export function setupSaveChordsEvent() {
+  saveChordsBtn.addEventListener('click', saveChords);
+}
+
+/**
+ *  [Cancel] Cancel reverts back without altering.
+ */
+export function setupCancelEditingEvent() {
+  cancelEditingBtn.addEventListener('click', cancelEditingChords);
+}
+
 // -
 function editChord(cancel = false) {
   // revertChord: is the marker that is now being edited
@@ -96,7 +161,7 @@ function editChord(cancel = false) {
     draggable
   );
 
-  // Colorizing again the span (label element)
+  // Colorizing again the span (label element font color NOT BACKGROUND)
   _setMarkerSpanColor(
     newSelectedMarker,
     lastSelectedMarker,
@@ -106,7 +171,6 @@ function editChord(cancel = false) {
   // Update lastSelectedMarker with the new one
   lastSelectedMarker = newSelectedMarker;
 
-  // Probably here the following needs to be called!
   updateMarkerDisplayWithColorizedRegions();
 }
 
@@ -141,7 +205,9 @@ function saveChords() {
         // Save as separate annotation
         jamsFile.annotations.push(newAnnotation);
         index = annotationList.length;
+        updateMarkerDisplayWithColorizedRegions(true);
       }
+
       _disableSaveChordsAndCancelEditing();
 
       // In the annotation list include information about modification date! TODO
@@ -165,14 +231,12 @@ function cancelEditingChords() {
     .then(() => {
       // User confirmed
       wavesurfer.clearMarkers();
-      renderAnnotations(selectedAnnotationData(jamsFile));
-      console.log('cancel editing after render');
+      // This needs to be before (for similar reason as stated in saveChords)
       _disableSaveChordsAndCancelEditing();
-      console.log('cancel editing after disable');
+      renderAnnotations(selectedAnnotationData(jamsFile));
     })
     .catch(() => {
       // User canceled
-      console.log('catch cancel ');
     });
 }
 
@@ -250,6 +314,7 @@ function _extractModalPromptFields() {
 // -
 function enableEditChordButtonFunction(selMarker) {
   console.log('selected marker:', selMarker);
+  console.log(selMarker.el._tippy);
   //  NOTE: marker-click event only trigger on span element click!
 
   // Color selected marker ONLY
@@ -269,18 +334,16 @@ function disableEditChordButtonFunction() {
 }
 
 function _setMarkerSpanColor(selMarker, lastSelectedMarker, color) {
-  const textSpan = selMarker.el.querySelector('.span-chord-text');
-  const symbolSpan = selMarker.el.querySelector('.span-chord-symbol');
+  const textSpan = selMarker.elChordTextSpan;
+  const symbolSpan = selMarker.elChordSymbolSpan;
 
   textSpan.style.color = color;
   symbolSpan.style.color = color;
 
   if (lastSelectedMarker !== undefined) {
     if (selMarker !== lastSelectedMarker) {
-      const lastTextSpan =
-        lastSelectedMarker.el.querySelector('.span-chord-text');
-      const lastSymbolSpan =
-        lastSelectedMarker.el.querySelector('.span-chord-symbol');
+      const lastTextSpan = lastSelectedMarker.elChordTextSpan;
+      const lastSymbolSpan = lastSelectedMarker.elChordSymbolSpan;
       textSpan.style.color = color;
       symbolSpan.style.color = color;
       lastTextSpan.style.color = '';
@@ -298,11 +361,12 @@ function showChordEditor() {
   // Set the flag to indicate that the modal is active
   isModalTableActive = true;
 
-  console.log(lastSelectedMarker.symbolParts);
-  chord.current.root = lastSelectedMarker.symbolParts.root;
+  chord.current.root = stripHtmlTags(lastSelectedMarker.symbolParts.root); // (removing <strong></strong>)
   chord.current.accidental = lastSelectedMarker.symbolParts.accidental;
   chord.current.variation = lastSelectedMarker.symbolParts.variation;
 
+  console.log(chord.current);
+  console.log(lastSelectedMarker.symbolParts.root);
   // Open chord editor indicating the last selected chord
   _colorizeTableSelections(chord.current);
 
@@ -311,8 +375,8 @@ function showChordEditor() {
 }
 
 function select(selection, component) {
-  console.log('selected table element:', selection);
-  console.log('last selected marker:', lastSelectedMarker);
+  // console.log('selected table element:', selection);
+  // console.log('last selected marker:', lastSelectedMarker);
 
   _updateChordVariable(selection, component);
   _colorizeTableSelections(chord.new);
@@ -328,42 +392,6 @@ function select(selection, component) {
 function closeModal() {
   modalChordEditor.style.display = 'none';
   isModalTableActive = false;
-}
-
-function createTooltipsChordEditor() {
-  // Assigning a tooltip according to mapping (tippy step 1)
-  tableElements.forEach(element => {
-    let tooltip;
-
-    const foundVariation = variations.find(variation => {
-      if (variation.encoded === element.innerHTML.trim()) {
-        return true;
-      } else if (variation.encoded === element.textContent.trim()) {
-        return true;
-      }
-    });
-
-    if (foundVariation) {
-      tooltip = foundVariation.description;
-      // Use matchedDescription where needed
-    } else {
-      // Handle the case when no variation is found
-      // console.log(`Not a matching variation found for ${element.innerHTML}`);
-      tooltip = element.getAttribute('data-modal-tooltip');
-    }
-
-    // Add tippy ONLY if not already defined in HTML (1)
-    if (!element.hasAttribute('data-modal-tooltip')) {
-      element.setAttribute('data-modal-tooltip', tooltip);
-    }
-  });
-
-  // Create a singleton: array of regular tippy instances (tippy step 2)
-  const modalSingleton = createTippySingleton(
-    '#chord-editor td',
-    'data-modal-tooltip',
-    MODAL_SINGLETON_PROPS
-  );
 }
 
 /**
@@ -391,8 +419,8 @@ function _updateChordVariable(selection, component) {
 
   // Checking conditions on trimmed like text with innerText & replace
   const selectedText = selection.innerText;
-  const trimmedVariation = chord.new.variation.replace(/<[^>]+>/g, '');
-  console.log('selectedText', selectedText);
+  // const trimmedVariation = chord.new.variation.replace(/<[^>]+>/g, '');
+  const trimmedVariation = stripHtmlTags(chord.new.variation);
 
   // Condition to uncheck all other cases except 'N.C.' & '??'
   if (selectedText === '??' || selectedText === 'N.C.') {
@@ -450,68 +478,4 @@ function _mapChordSymbolToText(encodedChord) {
   const mirLabel = `${foundRootNote}${foundAccidental}${column}${foundShorthand}`;
 
   return mirLabel;
-}
-
-// - Annotation tools (toolbar)
-
-/**
- * [Edit chord] allows modifying the selected chord (marker) by popping up a modal table with chord roots,variations and accidentals
- */
-
-export function setupEditChordEvents() {
-  // Edit selected chord onPressingEditChordButton (enables button)
-  wavesurfer.on('marker-click', enableEditChordButtonFunction);
-  wavesurfer.on('seek', disableEditChordButtonFunction);
-  editChordBtn.addEventListener('click', showChordEditor);
-
-  /* Chord Editor Modal related events: */
-  createTooltipsChordEditor(); // (This is not actually an event! It assigns the tooltips in the table)
-
-  chordEditor.addEventListener('click', event => {
-    // Proceed if click is on el with class Root, Accidental or Variation
-    if (event.target.tagName !== 'TD' && event.target.tagName !== 'TEXT') {
-      return;
-    }
-
-    // A loop to find the closest element with a class
-    let closestElementWithClass = event.target;
-    while (
-      closestElementWithClass &&
-      closestElementWithClass.className === ''
-    ) {
-      closestElementWithClass = closestElementWithClass.parentElement;
-    }
-    const selection = closestElementWithClass;
-    const component = closestElementWithClass.className;
-
-    select(selection, component);
-    editChord();
-  });
-
-  // cancel click
-  cancelBtn.addEventListener('click', () => {
-    editChord(true);
-    closeModal(true);
-  });
-
-  // apply click
-  applyBtn.addEventListener('click', () => {
-    // disableAnnotationList();
-    _disableAnnotationListAndDeleteAnnotation();
-    closeModal();
-  });
-}
-
-/**
- *  [Save chords] Save chords stores changes made either as separate or replaced annotation (except original annotation)
- */
-export function setupSaveChordsEvent() {
-  saveChordsBtn.addEventListener('click', saveChords);
-}
-
-/**
- *  [Cancel] Cancel reverts back without altering.
- */
-export function setupCancelEditingEvent() {
-  cancelEditingBtn.addEventListener('click', cancelEditingChords);
 }

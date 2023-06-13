@@ -8,6 +8,7 @@ import timelinePlugin from 'wavesurfer.js/dist/plugin/wavesurfer.timeline.min.js
 import markersPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.markers.min.js';
 import minimapPlugin from 'wavesurfer.js/dist/plugin/wavesurfer.minimap.min.js';
 
+import { toolbarStates } from './annotation-tools.js';
 import { isModalTableActive } from './annotation-tools/right-toolbar-tools.js';
 import { loadJAMS } from './render-annotations.js';
 
@@ -85,7 +86,7 @@ let fileName = 'Unknown'; // store prev filename on every import
 const minPxPerSec = 152;
 let repeatEnabled = false;
 let recordEnabled = false;
-let prevVolumeSliderValue = 0.5; // also initial volume slider value
+let prevVolumeSliderValue = 0.5;
 let cleanStateAudioEvents = true; // this is used to avoid bugs that occur when a new audio file is loaded and events are assigned again.
 let timeoutSkipForward;
 let timeoutSkipBackward;
@@ -110,13 +111,13 @@ wavesurfer.on('error', function (error) {
 });
 
 wavesurfer.on('ready', function () {
-  // / 00:00.0
-
+  // display total audio duration in format: (00:00.0 min:sec.decisecond)
   const totalAudioDuration = formatTime(wavesurfer.getDuration());
   const displayedTotalDuration = `/ ${totalAudioDuration}`;
   audioDurationValue.textContent = displayedTotalDuration;
 
   console.log('Waveform ready! 👍');
+  console.log('     ------       ');
 });
 
 // -
@@ -146,7 +147,7 @@ function initWavesurfer() {
 
     plugins: [
       cursorPlugin.create({
-        showTime: false, //BUGGY with tooltips (false for now)
+        showTime: true,
         opacity: 1,
         hideOnBlur: false,
         customShowTimeStyle: {
@@ -154,7 +155,7 @@ function initWavesurfer() {
           color: '#fff',
           padding: '2px',
           'font-size': '10px',
-          transform: 'translate(0%, 150%)',
+          // transform: 'translate(0%, 150%)',
         },
       }),
       regionsPlugin.create(),
@@ -185,7 +186,6 @@ function initWavesurfer() {
 export function loadAudioFile(input) {
   if (input === undefined) return;
 
-  let saveState = saveChordsBtn.classList.contains('disabled');
   const [fileUrl, file] = loadFile(input);
 
   function loadAudio() {
@@ -202,8 +202,11 @@ export function loadAudioFile(input) {
     audioFileName.textContent = audioFileNamePreface.textContent;
   }
 
-  if (file && !saveState) {
+  if (file && !toolbarStates.SAVED) {
     const message = `You are about to import: <br> <span class="text-primary">${file.name}</span>.<br> Any unsaved changes on<br><span class="text-primary">${fileName}</span> will be <span class="text-warning">discarded.</span> <br><br><span class="text-info">Are you sure?</span> 🤷‍♂️`;
+
+    // Change the state to true because the user selected to proceed (and visualizations depend on SAVED state)
+    toolbarStates.SAVED = true;
 
     renderModalMessage(message)
       .then(() => {
@@ -243,7 +246,6 @@ function audioPlayerEvents() {
 
   // enable autoscroll & update time ruler when user (clicks waveform, minimap, skips forward e.t.c.)
   wavesurfer.on('seek', () => {
-    console.log('seek!');
     enableAutoScroll();
     timeRuler();
   });
@@ -305,6 +307,8 @@ function resetAudioPlayer() {
     // and a small timeout for rendering reasons
     wavesurfer.zoom(minPxPerSec - 1);
   }, 5);
+  zoomInBtn.classList.remove('disabled');
+  zoomOutBtn.classList.remove('disabled');
 
   // Center controls
   playBtn.classList.remove('d-none');
@@ -320,16 +324,13 @@ function resetAudioPlayer() {
   unmuteBtn.classList.remove('d-none');
 
   // Right controls
-  volumeSlider.value = prevVolumeSliderValue;
-  wavesurfer.setVolume(prevVolumeSliderValue);
+  volumeSlider.value = 0.5;
+  wavesurfer.setVolume(0.5);
 
   console.log('resetAudioPlayer is complete 😁');
 }
 
 function audioPlayerControls(e) {
-  console.log('P.M. from bonobo master 🤣');
-  console.log(e.target);
-
   // left audio player controls
   if (e.target.closest('#zoom-in-btn')) {
     zoomIn(e);
@@ -401,7 +402,9 @@ function keyboardAudioPlayerShortcuts(e) {
   } else if (key === 'KeyL') {
     repeat(e);
   } else {
-    console.log(wavesurfer.regions.list);
+    // console.log(wavesurfer);
+    // console.log(wavesurfer.regions.list);
+    // console.log(wavesurfer.markers.markers);
     //TODO remove just now for testing
     // calcParams();
     // displayedWaveformStartEndTime();
@@ -409,17 +412,30 @@ function keyboardAudioPlayerShortcuts(e) {
 }
 
 function zoomIn(e) {
+  // If the zoom level is already at the maximum, just return and do nothing
+  if (wavesurfer.params.minPxPerSec >= 600) {
+    return;
+  }
+
   wavesurfer.zoom(wavesurfer.params.minPxPerSec * 2);
   zoomOutBtn.classList.remove('disabled');
 
+  // If after zooming in the minPxPerSec is at or above the maximum, disable the zoomIn button
   if (wavesurfer.params.minPxPerSec >= 600) {
     zoomInBtn.classList.add('disabled');
   }
 }
 
 function zoomOut(e) {
+  // If the zoom level is already at the minimum, just return and do nothing
+  if (wavesurfer.params.minPxPerSec <= 50) {
+    return;
+  }
+
   wavesurfer.zoom(wavesurfer.params.minPxPerSec / 2);
   zoomInBtn.classList.remove('disabled');
+
+  // If after zooming out the minPxPerSec is at or below the minimum, disable the zoomOut button
   if (wavesurfer.params.minPxPerSec <= 50) {
     zoomOutBtn.classList.add('disabled');
   }
@@ -492,7 +508,8 @@ function playPause(e) {
 }
 
 function record(e) {
-  const recordIcon = e.target.closest('.fa-circle');
+  // DON'T USE  e.target.closest('.fa-circle') bcs it bugs when the event is triggered from the keyboard shortcut
+  const recordIcon = document.querySelector('#record-btn .fa-circle');
 
   // if not already enabled then  enable it
   if (recordEnabled) {
@@ -509,7 +526,8 @@ function record(e) {
 }
 
 function repeat(e) {
-  const repeatIcon = e.target.closest('.fa-repeat');
+  // DON'T USE  e.target.closest (.. same reason as record())
+  const repeatIcon = document.querySelector('#repeat-btn .fa-repeat');
 
   // if not already enabled then  enable it
   if (repeatEnabled) {
@@ -732,6 +750,9 @@ function pageTurnPlayback(currentTime) {
   // for more options implement other custom seekAndCenter function
 
   disableAutoScroll();
+
+  // You can use information from displayedWaveformStartEndTime() to achieve the pageTurnPLayback display
+  // by moving to the percentage of current display of your will (1/4 probably)
 
   // 'turn page' every 1/4 of the displayed (parentWidth) width
   const pageTurnThreshold = parentWidth / 4;

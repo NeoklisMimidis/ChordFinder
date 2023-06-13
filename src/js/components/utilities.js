@@ -306,3 +306,13 @@ export function areObjectsEqual(obj1, obj2) {
 
   return true;
 }
+
+/**
+ * Removes HTML tags from a string.
+ *
+ * @param {string} str - The input string containing HTML tags.
+ * @returns {string} - The string with HTML tags removed.
+ */
+export function stripHtmlTags(str) {
+  return str.replace(/<[^>]+>/g, '');
+}

@@ -5,6 +5,7 @@ import {
   renderAnnotations,
   selectedAnnotationData,
   updateMarkerDisplayWithColorizedRegions,
+  tooltips,
 } from '../render-annotations.js';
 
 import { renderModalMessage } from '../components/utilities.js';
@@ -13,7 +14,12 @@ import { createToggle } from '../components/utilities.js';
 
 import { resetToggle } from '../components/utilities.js';
 
-export let editModeState = false; // true of false edit state(toggle Edit)
+// export let editModeState = false; // true of false edit state(toggle Edit)
+
+import { toolbarStates } from '../annotation-tools.js';
+
+// toolbarStates.SNAP_ON_BEATS;
+// toolbarStates.CLICK_TRACK;
 
 /* Elements */
 //  Center controls
@@ -48,15 +54,15 @@ function deleteAnnotation() {
 
 function toggleEdit() {
   // Create toggle functionality for edit button
-  const [state, _, __] = createToggle('#toggle-edit-btn');
-  editModeState = state;
+  let [editModeState, _, __] = createToggle('#toggle-edit-btn');
+  toolbarStates.EDIT_MODE = editModeState;
   console.log(
-    `Edit ${editModeState ? 'enabled! Have fun 😜!' : '..disabled'} `
+    `Edit ${toolbarStates.EDIT_MODE ? 'enabled! Have fun 😜!' : '..disabled'} `
   );
 
   // zoom once in or out when entering edit mode
   wavesurfer.zoom(
-    editModeState
+    toolbarStates.EDIT_MODE
       ? wavesurfer.params.minPxPerSec * 2
       : wavesurfer.params.minPxPerSec / 2
   );
@@ -77,17 +83,19 @@ function toggleEdit() {
 
   updateMarkerDisplayWithColorizedRegions(true);
 
+  // Tippy (tooltips) related functionality
   const questionIcon = document.querySelector('.fa-circle-question');
   const infoIcon = document.querySelector('.fa-circle-info');
-  // Tippy (tooltips) related functionality
-  if (editModeState) {
+  if (toolbarStates.EDIT_MODE) {
     editModeTools.classList.remove('pointer-events-disabled');
     questionIcon.classList.add('d-none');
     infoIcon.classList.remove('d-none');
+    tooltips.regions[0].disable(); //disable region tooltips while on edit mode (markers tooltip are still there)
   } else {
     editModeTools.classList.add('pointer-events-disabled');
     questionIcon.classList.remove('d-none');
     infoIcon.classList.add('d-none');
+    tooltips.regions[0].enable();
   }
 }
 
@@ -132,7 +140,10 @@ export function resetToolbar() {
   resetToggle('#toggle-clickTrack-btn');
 
   // Middle controls
-  editModeState = false; // this will affect the rendering of the new annotation with updateMarkerDisplayWithColorizedRegions()
+  toolbarStates.EDIT_MODE = false; // this will affect the rendering of the new annotation with updateMarkerDisplayWithColorizedRegions()
+  toolbarStates.SNAP_ON_BEATS = false;
+  toolbarStates.CLICK_TRACK = false;
+  console.log(toolbarStates);
   annotationList.classList.remove('disabled');
   resetToggle('#toggle-edit-btn');
 

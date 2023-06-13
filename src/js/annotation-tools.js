@@ -54,6 +54,13 @@ const tableElements = document.querySelectorAll('#chord-editor td');
 const applyBtn = document.getElementById('apply-btn');
 const cancelBtn = document.getElementById('cancel-btn');
 
+export const toolbarStates = {
+  SNAP_ON_BEATS: false,
+  CLICK_TRACK: false,
+  EDIT_MODE: false,
+  SAVED: true,
+};
+
 // - EVENTS
 export function toolbarAndEditingRelatedEvents() {
   /* Events (for editor) */
@@ -98,7 +105,7 @@ export function toolbarAndEditingRelatedEvents() {
   /* ------ */
   setupDownloadJamsEvent();
   setupCalculateTempoEvent();
-  setupShowPrevOrNextChordLabelWhenNotIntoView();
+  // setupShowPrevOrNextChordLabelWhenNotIntoView();/NOT READY!
 
   cleanStateAnnotationEvents = false;
   console.log('Event listeners for EDIT MODE ready! ⚡');
@@ -118,6 +125,9 @@ export function _disableSaveChordsAndCancelEditing() {
   saveChordsBtn.classList.add('disabled');
   cancelEditingBtn.classList.add('disabled');
 
+  // update the SAVED state
+  toolbarStates.SAVED = true;
+
   document.querySelector('#toolbar').classList.remove('editing-on');
 }
 
@@ -128,9 +138,11 @@ export function _disableAnnotationListAndDeleteAnnotation() {
   saveChordsBtn.classList.remove('disabled');
   cancelEditingBtn.classList.remove('disabled');
 
+  // update the SAVED state
+  toolbarStates.SAVED = false;
+
   console.log(' _disableAnnotationListAndDeleteAnnotation');
   document.querySelector('#toolbar').classList.add('editing-on');
-  console.log(document.querySelector('#toolbar'));
 }
 
 // - OTHERS
@@ -171,6 +183,7 @@ function calculateTempo(beatDuration) {
   tempoValue.textContent = tempo;
 }
 
+// - TODO in progress
 // ..ON PROGRESS SHOW PREV or NEXT CHORD if LABEL not into view! TODO
 function setupShowPrevOrNextChordLabelWhenNotIntoView() {
   wavesurfer.on('region-in', region => {
@@ -183,7 +196,6 @@ function setupShowPrevOrNextChordLabelWhenNotIntoView() {
   });
 }
 
-// - TODO in progress
 // This function checks if a given time range overlaps with a given visible time range
 function overlapsWithVisibleRange(start, end, visibleStart, visibleEnd) {
   return start < visibleEnd && end > visibleStart;

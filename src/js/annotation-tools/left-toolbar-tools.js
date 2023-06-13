@@ -1,9 +1,6 @@
 import { wavesurfer } from '../audio-player.js';
 import { createToggle } from '../components/utilities.js';
-import { editModeState } from './center-toolbar-tools.js';
 import click from 'url:../../data/click_metronome.wav';
-
-import { CLICK_TRACK_HIGHLIGHT_COLOR } from '../config.js';
 
 // Left controls
 export const toggleSnapOnBeatsBtn = document.getElementById(
@@ -13,9 +10,9 @@ export const toggleClickTrackBtn = document.getElementById(
   'toggle-clickTrack-btn'
 );
 
-let snapOnBeatsState = false;
-let clickTrackState = false;
-let currentRegion;
+import { toolbarStates } from '../annotation-tools.js';
+
+let currentRegionElement;
 let userInteractedWithWaveform = false;
 let isWebAudioInitialized = false;
 let clickBuffer; // Store into a variable the fetched click sound for repeated usage
@@ -32,16 +29,22 @@ let [audioContext, primaryGainControl] = _initWebAudio();
 // 1) reset functionality on every resetToolbar.. not only the displayed button
 export function setupSnapOnBeatsEvent() {
   toggleSnapOnBeatsBtn.addEventListener('click', () => {
-    [snapOnBeatsState] = createToggle('#toggle-SnapOnBeats-btn');
+    let [snapOnBeatsState] = createToggle('#toggle-SnapOnBeats-btn');
+    toolbarStates.SNAP_ON_BEATS = snapOnBeatsState;
   });
 
   wavesurfer.on('region-click', (region, event) => {
+    console.log('Clicked region:', region);
     snapOnBeats(region.start, event);
-    if (currentRegion && clickTrackState) {
-      currentRegion.element.classList.remove('region-highlight');
+    if (
+      currentRegionElement &&
+      toolbarStates.CLICK_TRACK &&
+      !toolbarStates.EDIT_MODE
+    ) {
+      currentRegionElement.classList.remove('region-highlight');
       region.element.classList.add('region-highlight');
     }
-    currentRegion = region; // this is used for click track highligh region
+    currentRegionElement = region.element; // this is used for click track highligh region
   });
 }
 
@@ -55,13 +58,14 @@ export function setupClickTrackEvent() {
 
   toggleClickTrackBtn.addEventListener('click', () => {
     // Create toggle functionality for Click Track button
-    [clickTrackState] = createToggle('#toggle-clickTrack-btn');
+    let [clickTrackState] = createToggle('#toggle-clickTrack-btn');
+    toolbarStates.CLICK_TRACK = clickTrackState;
 
-    if (!currentRegion) {
-      currentRegion = wavesurfer.regions.list[0];
+    if (!currentRegionElement) {
+      currentRegionElement = wavesurfer.regions.list[0].element;
     }
-    if (clickTrackState) {
-      currentRegion.element.classList.add('region-highlight');
+    if (toolbarStates.CLICK_TRACK) {
+      currentRegionElement.classList.add('region-highlight');
     } else {
       // Clear any remaining highlight region in any way (don't use currentRegion.classList.remove('region-highlight') because it doesn't cover all the cases
       Object.values(wavesurfer.regions.list).forEach(region => {
@@ -76,14 +80,17 @@ export function setupClickTrackEvent() {
   });
 
   wavesurfer.on('region-in', region => {
-    if (clickTrackState) {
-      currentRegion.element.classList.remove('region-highlight');
+    if (toolbarStates.CLICK_TRACK) {
+      currentRegionElement.classList.remove('region-highlight');
       region.element.classList.add('region-highlight');
-    }
-    currentRegion = region;
 
-    if (!userInteractedWithWaveform) clickTrack();
+      if (!userInteractedWithWaveform) clickTrack();
+    }
+    currentRegionElement = region.element;
     userInteractedWithWaveform = false;
+
+    // if (!userInteractedWithWaveform && toolbarStates.CLICK_TRACK) clickTrack();
+    // userInteractedWithWaveform = false;
   });
   // revert back to default color when leaving a region
   wavesurfer.on('region-out', region => {
@@ -93,17 +100,20 @@ export function setupClickTrackEvent() {
   // CAREFUL! onpause also triggers on waveform seek (so now when on activate clickTrackState it also colorizes )
   wavesurfer.on('pause', () => {
     // Only in the case where annotations exist
-    if (wavesurfer.markers.markers[0] && clickTrackState) {
+    if (wavesurfer.markers.markers[0] && toolbarStates.CLICK_TRACK) {
     }
   });
 }
 
 function snapOnBeats(startTime, event) {
-  if (snapOnBeatsState) {
-    if ((editModeState && wavesurfer.isPlaying()) || !editModeState) {
+  if (toolbarStates.SNAP_ON_BEATS) {
+    if (
+      (toolbarStates.EDIT_MODE && wavesurfer.isPlaying()) ||
+      !toolbarStates.EDIT_MODE
+    ) {
       event.stopPropagation(); // CAREFUL! stop propagation on in those 2 cases of snap cursor
       wavesurfer.seekTo(startTime / wavesurfer.getDuration());
-      if (clickTrackState) clickTrack(); // also add a click sound if click track is activated
+      if (toolbarStates.CLICK_TRACK) clickTrack(); // also add a click sound if click track is activated
     } else {
       // CAREFUL! DON'T STOP propagation HERE
       console.warn(
