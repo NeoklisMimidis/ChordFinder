@@ -14,12 +14,6 @@ import {
   _disableSaveChordsAndCancelEditing,
 } from '../annotation-tools.js';
 
-import {
-  setupEditChordEvents,
-  setupSaveChordsEvent,
-  setupCancelEditingEvent,
-} from '../annotation-tools/right-toolbar-tools.js';
-
 import { MARKER_LABEL_SPAN_COLOR, TABLE_SELECTION_COLOR } from '../config.js';
 
 import { variations, accidentals } from '../components/mappings.js';

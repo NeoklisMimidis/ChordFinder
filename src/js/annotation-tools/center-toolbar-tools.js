@@ -8,18 +8,13 @@ import {
   tooltips,
 } from '../render-annotations.js';
 
-import { renderModalMessage } from '../components/utilities.js';
-
-import { createToggle } from '../components/utilities.js';
-
-import { resetToggle } from '../components/utilities.js';
-
-// export let editModeState = false; // true of false edit state(toggle Edit)
+import {
+  renderModalMessage,
+  createToggle,
+  resetToggle,
+} from '../components/utilities.js';
 
 import { toolbarStates } from '../annotation-tools.js';
-
-// toolbarStates.SNAP_ON_BEATS;
-// toolbarStates.CLICK_TRACK;
 
 /* Elements */
 //  Center controls
