@@ -20,10 +20,14 @@
 
   --color-audio-player: #0abfff33;
   --color-waveform-background--1: #c9dee980;
-  --color-waveform-background--2: #a1d4f059;
+  /* --color-waveform-background--2: #a1d4f059; */
+  --color-waveform-background--2: #b5d8eb;
+  --color-waveform-background--3: #a9d2e3;
+  /* --color-waveform-background--3: #7ec2e7cd; */
 
   --color-marker-label: #0d6ab6cc;
   --color-marker-label-background: #d3d3d3b3;
+  --color-region-highlight: #e77314cc;
 }
 
 body {
@@ -44,7 +48,7 @@ body {
 h1 {
   font-family: Helvetica, Arial, sans-serif;
   font-size: 4.5vw;
-  padding: 2.5rem 0 1.5rem;
+  padding: 2.7rem 0 1.5rem;
   text-align: center;
   color: transparent;
   background: var(--color-gradient--2);
@@ -67,7 +71,7 @@ h1 {
 /* --------------------- */
 #toolbar,
 .preface-audio-help,
-.preface-annotation-help {
+.preface-annotation-bar {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-around;
@@ -84,12 +88,22 @@ h1 {
   font-family: Verdana, Manrope, Great Vibes, sans-serif;
 }
 
-.preface-annotation-help {
-  width: 65% !important;
-  transform: translate(0%) !important;
+.preface-annotation-bar > * {
+  justify-content: space-around !important;
+  display: flex;
+  align-items: center;
+}
+
+#preface-annotation-help {
+  flex: 0.65;
+}
+
+#audio-file-name-preface {
+  flex: 0.3;
 }
 
 /* class for all 3, left + center + right toolbar-controls  */
+.preface-annotation-bar > *,
 .toolbar-controls {
   background-color: var(--color-toolbar-controls);
   padding: 0.5rem 0.5rem;
@@ -120,7 +134,8 @@ h1 {
   justify-content: center;
 }
 
-#audio-file-name {
+#audio-file-name,
+#audio-file-name-preface {
   white-space: nowrap;
 }
 
@@ -150,7 +165,7 @@ h1 {
 }
 
 #toolbar .no-border:hover {
-  color: var(--color-highlight--5);
+  color: var(--color-highlight--5) !important;
 }
 
 .btn-edit-mode {
@@ -195,6 +210,13 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
   border-left: 1.5px solid black;
   border-right: 1.5px solid black;
   opacity: 1;
+  position: relative !important;
+}
+
+/* Displayed waveform + scrollbar (NO MINIMAP)*/
+/* 128 is the default height given in wavesurfer params, where 18px is the scrollbar.*/
+#waveform > wave {
+  position: relative !important;
 }
 
 .drag-over {
@@ -227,16 +249,22 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
   background-color: var(--color-waveform-background--2);
 }
 
+/* minimap progress background color*/
+#waveform > minimap > wave > wave {
+  background-color: var(--color-waveform-background--3);
+}
+
 #waveform-bpm {
   font-size: 95%;
   position: absolute;
-  right: 9rem;
-  transform: translateY(-300%);
+  right: 1%;
+  top: 50%;
+  height: 20%;
   padding: 0.15em;
   border-radius: 4px;
   box-shadow: 1px 1px 2px var(--color-dark--2);
   background-color: var(--color-light--2);
-  z-index: 5;
+  z-index: 6;
 }
 
 #waveform-prev-chord,
@@ -258,15 +286,106 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
   right: 8.5rem;
 }
 
+/* // - */
+.skip-cue {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  width: 75px;
+  height: 75px;
+  border-radius: 50%;
+  color: white;
+  background-color: var(--color-dark--2);
+  opacity: 0.7;
+  font-size: 0.9em;
+  animation: fadeInOut 1s ease-out;
+  z-index: 10;
+  top: 12%;
+}
+
+#skip-forward {
+  display: none;
+  right: 1%;
+}
+#skip-backward {
+  display: none;
+  left: 1%;
+}
+
+.skip-cue-arrows i:nth-child(1) {
+  animation: fadeInOut1 1.2s ease-out infinite;
+}
+
+.skip-cue-arrows i:nth-child(2) {
+  animation: fadeInOut2 1.2s ease-out infinite;
+  animation-delay: 0.2s;
+}
+
+.skip-cue-arrows i:nth-child(3) {
+  animation: fadeInOut3 1.2s ease-out infinite;
+  animation-delay: 0.4s;
+}
+
+@keyframes fadeInOut1 {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeInOut2 {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeInOut3 {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.skip-cue-tooltip {
+  font-size: 72%;
+  /* font-weight: bold; */
+  font-family: Verdana, Manrope, sans-serif;
+}
+
+/* // - */
+
 /*  REGIONS  */
 .wavesurfer-region {
   z-index: 1 !important;
+}
+
+.region-highlight {
+  background-color: var(--color-region-highlight) !important;
 }
 
 /* MARKERS */
 .wavesurfer-marker {
   z-index: 4 !important;
   pointer-events: none;
+  overflow: visible !important;
 }
 /* // - */
 .span-chord-text {
@@ -283,13 +402,10 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 }
 
 .span-chord-symbol {
-  display: flex !important;
-  /* flex-wrap: wrap; */
-  justify-content: center;
-  align-items: flex-start;
+  justify-content: flex-start;
+  transform: translate(5px, 5px);
   white-space: nowrap;
   height: 2rem;
-  transform: translateY(6px);
   border-radius: 0.3em;
   box-shadow: 2px 2px 0px var(--color-dark--2);
   color: var(--color-marker-label);
@@ -297,7 +413,10 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 }
 
 .marker-label svg {
-  margin-top: -15px;
+  margin-top: -22px;
+  position: absolute;
+  top: 15;
+  left: 0;
 }
 
 /* ----------------------------------- */
@@ -308,30 +427,69 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  padding: 10px;
+  padding: 5px;
   background-color: var(--color-audio-player);
   border: 1.5px solid var(--color-dark--1);
   border-bottom-left-radius: 10px;
   box-shadow: 0 2px 0.5px var(--color-dark--2);
+  font-family: Verdana, Manrope, sans-serif;
 }
 
 .player-controls > * {
   display: flex;
-  justify-content: center;
+  flex-wrap: wrap;
+  align-items: center;
+  /* gap: 1em; */
+}
+
+#left-player-controls {
+  flex-basis: 37%;
+  justify-content: flex-start;
+}
+
+#time-ruler-btn {
+  /* margin-left: auto; */
+  margin-left: 0.8em;
+  font-size: 160%;
+  color: var(--color-dark--2);
 }
 
 #center-player-controls {
-  gap: 1.8em;
-  margin-left: 6%;
+  flex-basis: 35%;
+  gap: 1.6em;
+  justify-content: center;
 }
 
 #right-player-controls {
-  gap: 0.2em;
-  margin-right: 1.1%;
+  flex-basis: 28%;
+  justify-content: space-evenly;
+}
+
+/* 
+  Normal transition: When appearing, there is a 0.5-second gradual opacity transition.
+  This gradual transition helps to avoid a buggy situation when both enabling 
+  and disabling autoscroll happen concurrently. If the no-opacity 
+  class is applied, the transition delay must be set to 0 for better user experience.
+*/
+#autoscroll-btn {
+  padding: 0.3em !important;
+  margin-right: auto;
+  border-radius: 1em;
+  box-shadow: 1px 1px 0px var(--color-dark--2);
+  color: var(--color-dark--2);
+  background-color: var(--color-highlight--2);
+  transition: opacity 0.5s;
+}
+#autoscroll-btn.no-opacity {
+  transition: opacity 0s !important;
 }
 
 .repeat-enabled {
   color: Teal;
+}
+
+.record-enabled {
+  animation: fa-fade 1s infinite;
 }
 
 .fa-play:hover {
@@ -408,8 +566,8 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 }
 
 .no-opacity {
-  opacity: 0;
-  pointer-events: none;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 .no-border {
@@ -419,7 +577,7 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 }
 
 .no-border:hover {
-  color: var(--color-highlight--3);
+  color: var(--color-highlight--3) !important;
 }
 
 /* disable pointer events for no-border disabled buttons */
@@ -508,17 +666,21 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 /* CLASSES CUSTOMIZING TOOLTIPS */
 /* ---------------------------- */
 .tippy-box[data-theme~='custom'] {
-  /* background-image: linear-gradient(to bottom right, #21c994, #94dd89); */
   background-image: linear-gradient(
     to bottom right,
     rgba(250, 242, 208, 1),
     rgb(144, 217, 244)
   );
-  opacity: 0.8;
-  /* background-color: tomato; */
-  /* color: burlywood; */
+  /* transition: opacity 0s !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important; */
+  /* transition: 0s; */
+  opacity: 0.8 !important;
   color: black;
 }
+/* background-color: tomato; */
+/* color: burlywood; */
+/* background-image: linear-gradient(to bottom right, #21c994, #94dd89); */
 
 /* ------------------------ */
 /* Styling webkit scrollbar */
@@ -526,6 +688,7 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 ::-webkit-scrollbar {
   -webkit-appearance: none;
   width: 7px;
+  height: 18px;
 }
 ::-webkit-scrollbar-thumb {
   border-radius: 4px;
@@ -536,19 +699,31 @@ Furthermore, Wavesurfer generates two parallel canvas elements to display two di
 
 ::-webkit-scrollbar-button:horizontal:start:decrement {
   display: block;
-  width: 20px;
-  height: 20px;
-  /* background-color: gray; */
+  width: 18px;
+  height: 18px;
   background-color: rgb(197, 224, 226);
-  border-radius: 20px;
+  border-radius: 16px;
   background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"%3E%3Cpolygon fill="%23000" points="2,8 10,0 10,16" transform="rotate(0 8 8)" /%3E%3C/svg%3E');
 }
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-dark--2);
+}
+
+::-webkit-scrollbar-button:horizontal:start:decrement:hover,
+::-webkit-scrollbar-button:horizontal:end:increment:hover {
+  background-color: var(--color-highlight--3);
+}
+
 ::-webkit-scrollbar-button:horizontal:end:increment {
   display: block;
-  width: 20px;
-  height: 20px;
-  /* background-color: gray; */
+  width: 18px;
+  height: 18px;
   background-color: rgb(197, 224, 226);
-  border-radius: 20px;
+  border-radius: 16px;
   background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"%3E%3Cpolygon fill="%23000" points="2,8 10,0 10,16" transform="rotate(180 8 8)" /%3E%3C/svg%3E');
 }
+
+/*  A FEW NOTES ABOUT STYLING WEBKIT SCROLLBAR:
+It's important to remember that styling scrollbars using the ::-webkit-scrollbar pseudo-elements only affects Webkit-based browsers and will not work in all browsers, like Firefox or Internet Explorer. For universal cross-browser scrollbar customization, you might have to use a JavaScript-based custom scrollbar library like perfect-scrollbar, SimpleBar, etc.
+*/

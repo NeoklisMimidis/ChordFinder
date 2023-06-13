@@ -28,42 +28,8 @@ export const EDITED_MARKER_STYLE = {
 };
 
 // Regions color while Click track activated
-export const CLICK_TRACK_HIGHLIGHT_COLOR = 'rgba(231, 115, 20, 0.8)';
-
-// Tippy tooltips styling
-export const MARKERS_SINGLETON_PROPS = {
-  delay: [500, 250],
-  moveTransition: 'transform 0.2s ease-out',
-  hideOnClick: false,
-  animateFill: false,
-  // interactive: false,
-  animation: 'scale-subtle',
-  theme: 'custom',
-  onShow: function (instance) {
-    // Get the tooltip element
-    const tooltip = instance.popper.querySelector('.tippy-content');
-    // Apply text selection behavior to the tooltip content
-    tooltip.style.userSelect = 'none';
-  },
-};
-
-export const MODAL_SINGLETON_PROPS = {
-  delay: [500, 350],
-  moveTransition: 'transform 0.25s ease-out',
-  hideOnClick: false,
-  animateFill: false,
-  // interactive: false,
-  // content: reference => reference.getAttribute('data-modal-tooltip'),
-
-  // theme: 'custom',
-  // followCursor: true,
-  // plugins: [followCursor],
-
-  // animateFill: true,
-  // plugins: [followCursor, animateFill],
-  // trigger: 'click',
-  // interactive: true,
-};
+export const CLICK_TRACK_HIGHLIGHT_COLOR = 'rgba(231, 115, 20, 0.8)!important';
+// export const CLICK_TRACK_HIGHLIGHT_COLOR = 'var(--c)';
 
 // Table selection color
 export const TABLE_SELECTION_COLOR = 'tomato';

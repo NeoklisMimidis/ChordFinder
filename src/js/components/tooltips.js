@@ -1,5 +1,13 @@
 // Creating beautiful tooltips!
-import tippy, { createSingleton, followCursor, animateFill } from 'tippy.js';
+import tippy, {
+  createSingleton,
+  delegate,
+  followCursor,
+  getReferenceClientRect,
+  animateFill,
+  inlinePositioning,
+  sticky,
+} from 'tippy.js';
 import 'tippy.js/dist/tippy.css';
 import 'tippy.js/themes/light.css';
 import 'tippy.js/themes/light-border.css';
@@ -10,10 +18,12 @@ import 'tippy.js/animations/scale-subtle.css';
 import 'tippy.js/dist/backdrop.css';
 import 'tippy.js/animations/shift-away.css';
 
+import { variations } from './mappings.js';
+
 //  Set some default props for all instances
 tippy.setDefaultProps({
   allowHTML: true,
-  delay: [1500, 250],
+  // delay: [1500, 250], // TODO FIX
   hideOnClick: false,
   // animateFill removes arrow BUG
   // animateFill: true,
@@ -41,7 +51,6 @@ const centerToolbarControls = `The <strong>annotation list</strong> allows you t
 
 tippy('#center-toolbar-controls', {
   content: centerToolbarControls,
-  inlinePositioning: true,
   theme: 'translucent',
   // theme: 'light-border',
   // placement: 'right-start',
@@ -63,17 +72,19 @@ tippy('#right-toolbar-controls', {
 });
 
 const questionContent =
-  'The <strong>waveform</strong> showcases <span style="text-decoration: underline;">markers</span>, vertical lines indicating musical information such as <span style="font-style: italic; text-decoration: underline;">beat timings</span>. Each marker features a label displaying the respective <span style="font-style: italic; text-decoration: underline;">chord symbol</span>, with hidden duplicates for a cleaner display. Hover over the labels to reveal chord names. Lastly, colorized regions between markers correspond to root notes, enhancing visual recognition and differentiation';
+  'The <strong>waveform</strong> showcases <span style="text-decoration: underline;">markers</span>, vertical lines indicating musical information such as <span style="font-style: italic; text-decoration: underline;">beat timings</span>. Each marker features a label displaying the respective <span style="font-style: italic; text-decoration: underline;">chord symbol</span>, with hidden duplicates for a cleaner display. Colorized regions between markers correspond to root notes, enhancing visual recognition and differentiation.<br><span style="font-style: italic;">Hover on a region to reveal the complete chord name.</span>';
 tippy('.fa-circle-question', {
   content: questionContent,
   delay: [500, 100],
+  maxWidth: '350px',
+  offset: [50, 10],
   theme: 'translucent',
   placement: 'right-end',
   interactive: true,
 });
 
 const infoContent =
-  'In <span class="text-warning">Edit mode</span>, you gain extra functionality. Easily <span style="font-weight: bold; text-decoration: underline;">drag</span> markers (representing beats and chords) to fine-tune beat timing. <br><span style="font-weight: bold; text-decoration: underline;">Right-click</span> to remove the selected marker, or simply <span style="font-weight: bold; text-decoration: underline;">double-click</span> on the waveform to add a new marker at the desired position.<br><span style="font-style: italic;">Take control and enhance the accuracy of the automatic analysis effortlessly.</span>';
+  'In <span class="text-warning">Edit mode</span>, you gain extra functionality. Easily <span style="font-weight: bold; text-decoration: underline;">drag</span> markers (representing beats and chords) to fine-tune beat timing. <br><span style="font-weight: bold; text-decoration: underline;">Right-click</span> to remove the selected marker, or simply <span style="font-weight: bold; text-decoration: underline;">double-click</span> on the waveform to add a new marker at the desired position.<br>You can hover on a label to reveal additional metrics.<br><span style="font-style: italic;">Take control and enhance the accuracy of the automatic analysis effortlessly.</span>';
 tippy('.fa-circle-info', {
   content: infoContent,
   delay: [500, 100],
@@ -109,9 +120,9 @@ tippy('.fa-magnifying-glass-minus', {
   },
 });
 
-// Rewind || Play/Pause || Mute/Unmute
+// Stop || Play/Pause || Mute/Unmute
 tippy('.fa-backward-step', {
-  content: 'Rewind (0)',
+  content: 'Stop (0)',
   delay: [0, 0],
   // theme: 'translucent',
   placement: 'top',
@@ -146,6 +157,31 @@ tippy('.fa-pause', {
     tooltip.style.fontSize = '12px';
   },
 });
+tippy('.fa-backward', {
+  content: 'Backwards 5s (←)',
+  delay: [0, 0],
+  // theme: 'translucent',
+  placement: 'top',
+  arrow: false,
+  offset: [0, 30],
+  onShow: function (instance) {
+    const tooltip = instance.popper.querySelector('.tippy-content');
+    tooltip.style.fontSize = '12px';
+  },
+});
+tippy('.fa-forward', {
+  content: 'Forward 5s (→)',
+  delay: [0, 0],
+  // theme: 'translucent',
+  placement: 'top',
+  arrow: false,
+  offset: [0, 30],
+  onShow: function (instance) {
+    const tooltip = instance.popper.querySelector('.tippy-content');
+    tooltip.style.fontSize = '12px';
+  },
+});
+
 tippy('.fa-volume-high', {
   content: 'Mute (m)',
   delay: [0, 0],
@@ -170,8 +206,22 @@ tippy('.fa-volume-xmark', {
     tooltip.style.fontSize = '12px';
   },
 });
+
+tippy('.fa-circle', {
+  content: 'Enable recording (r)',
+  delay: [0, 0],
+  // theme: 'translucent',
+  placement: 'top',
+  arrow: false,
+  offset: [0, 30],
+  onShow: function (instance) {
+    const tooltip = instance.popper.querySelector('.tippy-content');
+    tooltip.style.fontSize = '12px';
+  },
+});
+
 tippy('.fa-repeat', {
-  content: 'Enable repeat (r)',
+  content: 'Enable loop (l)',
   delay: [0, 0],
   // theme: 'translucent',
   placement: 'top',
@@ -226,7 +276,6 @@ tippy('#audio-sidebar-text', {
  * }
  * @returns singleton
  */
-
 export function createTippySingleton(selector, tooltipDataAttribute, props) {
   let singleton;
 
@@ -253,8 +302,117 @@ export function createTippySingleton(selector, tooltipDataAttribute, props) {
   singleton.props.triggerTarget.forEach(el => {
     const tooltip = el.getAttribute(tooltipDataAttribute);
     el._tippy.setContent(tooltip);
-    el.singleton = singleton;
+    el.singleton = singleton; // Storing the Tippy.js singleton instance to every element part of the singleton.
   });
 
   return singleton;
+}
+
+function createTooltipsChordEditor() {
+  const tableElements = document.querySelectorAll('#chord-editor td');
+  // Assigning a tooltip according to mapping (tippy step 1)
+  tableElements.forEach(element => {
+    let tooltip;
+
+    const foundVariation = variations.find(variation => {
+      if (variation.encoded === element.innerHTML.trim()) {
+        return true;
+      } else if (variation.encoded === element.textContent.trim()) {
+        return true;
+      }
+    });
+
+    if (foundVariation) {
+      tooltip = foundVariation.description;
+      // Use matchedDescription where needed
+    } else {
+      // Handle the case when no variation is found
+      // console.log(`Not a matching variation found for ${element.innerHTML}`);
+      tooltip = element.getAttribute('data-modal-tooltip');
+    }
+
+    // Add tippy ONLY if not already defined in HTML (1)
+    if (!element.hasAttribute('data-modal-tooltip')) {
+      element.setAttribute('data-modal-tooltip', tooltip);
+    }
+  });
+
+  // Create a singleton: array of regular tippy instances (tippy step 2)
+  const modalSingleton = createTippySingleton(
+    '#chord-editor td',
+    'data-modal-tooltip',
+    MODAL_SINGLETON_PROPS
+  );
+}
+
+// - Singletons styling
+
+const MODAL_SINGLETON_PROPS = {
+  delay: [500, 350],
+  moveTransition: 'transform 0.25s ease-out',
+  hideOnClick: false,
+};
+
+/* Chord Editor Modal related events: */
+createTooltipsChordEditor(); // (This is not actually an event! It assigns the tooltips in the table)
+
+// Tippy tooltips styling
+export const MARKERS_SINGLETON_PROPS = {
+  delay: [500, 100],
+  moveTransition: 'transform 0.2s ease-out',
+  hideOnClick: false,
+  placement: 'left-start',
+  arrow: false,
+  offset: [0, -5],
+  animation: 'scale-subtle',
+  theme: 'custom',
+  onShow: function (instance) {
+    // Get the tooltip element
+    const tooltip = instance.popper.querySelector('.tippy-content');
+    // Apply text selection behavior to the tooltip content
+    tooltip.style.userSelect = 'none';
+  },
+};
+
+// NOTE markers singleton is initialized (or updated) in render-annotations every time a new marker is created
+
+// - Delegate instances styling
+// export const MARKERS_DELEGATE_PROPS = {
+//   placement: 'right-start',
+//   maxWidth: '180px',
+//   animation: 'scale-subtle',
+//   content: reference => reference.getAttribute('data-tooltip'),
+//   arrow: false,
+//   delay: [150, 0],
+//   duration: [100, 0],
+// };
+
+export const REGIONS_DELEGATE_PROPS = {
+  placement: 'top',
+  animation: 'none',
+  delay: [0, 0],
+  duration: [0, 0],
+  followCursor: 'horizontal',
+  plugins: [followCursor],
+};
+
+export function initDelegateInstance(parentEl, targetEl, props) {
+  const delegateInstance = delegate(parentEl, {
+    target: targetEl,
+    content: reference => reference.getAttribute('data-tooltip'),
+    theme: 'custom',
+    hideOnClick: false,
+    moveTransition: 0,
+    allowHTML: true,
+    onShow: function (instance) {
+      // Get the tooltip element
+      const tooltip = instance.popper.querySelector('.tippy-content');
+      // Apply text selection behavior to the tooltip content
+      tooltip.style.userSelect = 'text';
+      tooltip.style.textAlign = '';
+    },
+    ...props,
+  });
+
+  return delegateInstance;
 }

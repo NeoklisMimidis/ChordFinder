@@ -4,32 +4,38 @@
 import { wavesurfer } from './audio-player.js';
 
 import {
-  editModeState,
+  toolbarAndEditingRelatedEvents,
+  toolbarStates,
+} from './annotation-tools.js';
+
+import {
   annotationList,
   deleteAnnotationBtn,
   resetToolbar,
-} from './edit-mode.js';
-import { toolbarAndEditingRelatedEvents } from './edit-mode.js';
+} from './annotation-tools/center-toolbar-tools.js';
 
 import { variations, accidentals, chordColor } from './components/mappings.js';
-import { createTippySingleton } from './components/tooltips.js';
-import { loadFile, fileSelectHandlers } from './components/utilities.js';
+import {
+  initDelegateInstance,
+  REGIONS_DELEGATE_PROPS,
+  MARKERS_SINGLETON_PROPS,
+  createTippySingleton,
+} from './components/tooltips.js';
+import { loadFile } from './components/utilities.js';
 
 import {
   EDIT_MODE_ENABLED_STYLE,
   EDIT_MODE_DISABLED_STYLE,
   NEW_MARKER_STYLE,
   EDITED_MARKER_STYLE,
-  MARKERS_SINGLETON_PROPS,
 } from './config.js';
 
 export let jamsFile;
 
-// - Start of annotations visualization ||
-fileSelectHandlers('#analyze-chords-btn', loadJAMS, '.jams');
-
-//
-
+export let tooltips = {
+  markersSingleton: '',
+  regions: '',
+};
 // -
 export function loadJAMS(input) {
   if (input === undefined) return;
@@ -57,7 +63,7 @@ export function loadJAMS(input) {
       annotatedChordsAtBeatsData = selectedAnnotationData(jamsFile);
       renderAnnotations(annotatedChordsAtBeatsData);
 
-      // Assign the events for the toolbar and waveform
+      // Assign the events for the toolbar and waveform (all the functionality about annotation-tools lies here!)
       toolbarAndEditingRelatedEvents(wavesurfer);
     })
     .catch(error => {
@@ -65,11 +71,6 @@ export function loadJAMS(input) {
       console.error(error);
       throw new Error('Failed to fetch JAMS file');
     });
-
-  // this check is helpful to avoid some tippy bugs (hanging tooltip) when loading a new annotation
-  if (wavesurfer.markers.markers[0]) {
-    wavesurfer.markers.markers[0].el.singleton.disable();
-  }
 
   console.log('Loading JAMS has been successfully completed! ✌️');
 
@@ -87,20 +88,18 @@ export function createAnnotationsList(jamsFile) {
 
       if (annotation.annotation_metadata.data_source === 'program') {
         option.text = '(automatic analysis)';
-        // tooltip is the same as annotation_tools TODO
       } else if (annotation.annotation_metadata.data_source === 'user') {
         option.text = `Edit by ${annotation.annotation_metadata.curator.name}`;
       } else if (
         annotation.annotation_metadata.data_source === 'collaborative'
       ) {
         option.text = `Edit by ${annotation.annotation_metadata.curator.name}`;
-        // tooltip is the same as ??? no idea TODO
       } else {
         console.error(
           `Not a valid JAMS 'data_source' in your namespace: 'chord' annotation file!`
         );
       }
-      // Finally adding the option
+      // Finally adding the option in the dropdown list
       annotationList.add(option);
     } else {
       console.error(
@@ -133,7 +132,7 @@ export function renderAnnotations(annotationData) {
   // Add regions and markers to the waveform
   annotationData.forEach((obs, i) => {
     const startTime = obs.time;
-    const endTime = obs.time + obs.duration;
+    // const endTime = obs.time + obs.duration; // not used because duration of annotations can change while editing annotation. Instead separate function for calculation of duration on (updateMarkerDisplayWithColorizedRegions) is utilized
     const chordLabel = obs.value;
 
     // LABELS
@@ -191,6 +190,7 @@ export function addMarkerAtTime(
   marker.symbolParts = symbolParts;
   markerLabel.appendChild(chordSymbolSpan);
 
+  // Adding classes to displayed spans, for easier manipulation of styles from CSS stylesheet
   chordSymbolSpan.classList.add('span-chord-symbol');
   chordTextSpan.classList.add('span-chord-text');
 
@@ -217,9 +217,17 @@ export function addMarkerAtTime(
     wavesurfer.util.style(markerLine, EDIT_MODE_ENABLED_STYLE);
   }
 
-  // Store tooltip as an HTML element data attribute (tippy step 1)
-  const tooltipContent = _createTooltipText(marker);
-  marker.el.setAttribute('data-markers-tooltip', tooltipContent);
+  // Storing references to frequently accessed child elements of the marker.
+  // This is done to optimize performance by reducing the number of times the DOM tree is traversed
+  marker.elLine = markerLine;
+  marker.elLabel = markerLabel;
+  marker.elLabelSvg = marker.el.querySelector('.marker-label svg');
+  marker.elChordTextSpan = chordTextSpan;
+  marker.elChordSymbolSpan = chordSymbolSpan;
+  // NOTE {I could have also used DOM children method, instead of querySelector bcs for (e.g. markerLine === marker.el.children[0]) BUT if the marker structure changes then a lot of bugs will appear}
+
+  // const markersTooltipContent = _createTooltipText(marker, true);
+  // marker.el.setAttribute('data-tooltip', markersTooltipContent);
 
   return marker;
 }
@@ -238,15 +246,15 @@ export function updateMarkerDisplayWithColorizedRegions(editModeStyle = false) {
   // Clear previous chord regions
   wavesurfer.clearRegions();
 
-  // Create a singleton: array of regular tippy instances(tippy step 2)
-  const markersSingleton = createTippySingleton(
-    '.wavesurfer-marker',
-    'data-markers-tooltip',
-    MARKERS_SINGLETON_PROPS
-  );
-
-  // Disable tooltips to update them without bugs
-  markersSingleton.disable();
+  // Create a delegateInstance: array of regular tippy instances(tippy step 0)
+  if (!tooltips.regions) {
+    const parentEL = '#waveform > wave';
+    tooltips.regions = initDelegateInstance(
+      parentEL,
+      '.wavesurfer-region',
+      REGIONS_DELEGATE_PROPS
+    );
+  }
 
   markers.forEach(function (marker, index) {
     // Set style on marker depending on edit state
@@ -260,13 +268,24 @@ export function updateMarkerDisplayWithColorizedRegions(editModeStyle = false) {
     _addDurationToMarker(marker, index, markers);
 
     // Add a REGION for each wavesurfer.marker
-    _colorizeChordRegion(marker);
+    _colorizeChordRegion(marker, index); // Also adds region tooltips (tippy step 1)
+
+    // Store tooltip as an HTML element data attribute (tippy step 1)
+    // set true to display additional metrics marker tooltips
+    const markersTooltipContent = _createTooltipText(marker, true);
+    marker.el.setAttribute('data-tooltip', markersTooltipContent);
 
     prevChord = marker.mirLabel;
   });
 
-  // Re-enable tooltips
-  markersSingleton.enable();
+  // Create a singleton: array of regular tippy instances(tippy step 2)
+  tooltips.markersSingleton = createTippySingleton(
+    '.wavesurfer-marker',
+    'data-tooltip',
+    MARKERS_SINGLETON_PROPS
+  );
+
+  tooltips.markersSingleton.enable();
 
   console.log('Chord regions have been successfully colorized! ✌️');
 }
@@ -301,7 +320,7 @@ function _getChordParts(chordLabel) {
   return chordParts;
 }
 
-function _createTooltipText(marker) {
+function _createTooltipText(marker, extraMetrics = false) {
   const chordParts = _getChordParts(marker.mirLabel);
   const { rootNote, accidental, shorthand, bassNote } = chordParts;
 
@@ -311,25 +330,40 @@ function _createTooltipText(marker) {
     tooltip = el.description || '';
   });
 
-  tooltip = `🎶 ${rootNote}${accidental}  ${
-    shorthand === 'maj' ? '' : ' '
-  }${tooltip}${bassNote !== '' ? '/' + bassNote : ''} 🎶`;
+  let tooltipSimplifiedLabel;
+  if (marker.label.endsWith('M')) {
+    tooltipSimplifiedLabel = marker.label.slice(0, -1) + ' M';
+  } else {
+    tooltipSimplifiedLabel = marker.label;
+  }
+
+  const tooltipTime = Math.round(marker.time * 100) / 100;
+  const tooltipDuration = Math.round(marker.duration * 100) / 100;
+
+  if (extraMetrics) {
+    tooltip = `🎶 ${tooltipSimplifiedLabel}
+  <br>Time: <span class="text-secondary">${tooltipTime}s</span>
+  <br>Duration: <span class="text-secondary">${tooltipDuration}s</span>`;
+  } else {
+    tooltip = `🎶 ${rootNote}${accidental}  ${
+      shorthand === 'maj' ? '' : ' '
+    }${tooltip}${bassNote !== '' ? '/' + bassNote : ''}`;
+  }
 
   return tooltip;
 }
 
-/** 
-   * Replace the 14 shorthands used in the Tetrads vocabulary of the Audio Chord Estimation task with simpler ones according to the matching in mapping.js. 
-   *
-   * Tetrads vocabulary: min, maj, min7, maj7, minmaj7, 7, 
-  sus2, sus4, min6, maj6, dim, aug, dim7, hdim7
-   * 
-   * {string  Root Accidental (# or b) : Shorthand / bass note}   * 
-   * e.g. C#:maj/3
-   * 
-   * @returns string displayedLabel
-   */
-
+/**
+ * Simplifies 67 chord shorthands (65 regular and 2 special cases) as per mapping defined in mapping.js.
+ *
+ * While existing algorithms primarily identify major and minor chords (including inversions), few extend to the comprehensive Tetrads vocabulary (min, maj, min7, maj7, minmaj7, 7, sus2, sus4, min6, maj6, dim, aug, dim7, hdim7). This vocabulary constitutes a small part of possible chord variations.
+ *
+ * To accommodate these variations, additional shorthands are mapped to their MIREX equivalents, as per Christopher Harte's methodology. This enables chord evaluation tools like mireval to handle a wider array of chords, ensuring future compatibility in the annotation storage process. It's worth mentioning that these annotations are stored in JAMS (Json Annotated Music Specification), a format widely adopted within the MIREX community.
+ *
+ * MIREX chord symbols are formatted as follows: {string Root Accidental (# or b) : Shorthand / bass note}. For example, "C#:min/3" in MIREX is simplified to "C# m/3".
+ *
+ * @returns string displayedLabel
+ */
 function _simplifiedLabel(chordParts) {
   const { rootNote, accidental, shorthand, bassNote } = chordParts;
 
@@ -339,7 +373,7 @@ function _simplifiedLabel(chordParts) {
 
   const bassNoteWithSlash = bassNote !== '' ? '/' + bassNote : '';
 
-  const displayedLabel = `${rootNote}${accidental}${
+  const displayedLabel = `<strong>${rootNote}</strong>${accidental}${
     shorthand === 'maj' ? '' : ' '
   }${matchingEl.simplified}${bassNoteWithSlash}`;
 
@@ -347,9 +381,7 @@ function _simplifiedLabel(chordParts) {
 }
 
 /**
- * Map MIREX chord format to Genius Jam Tracks font symbol display
- *
- * @param {*} label
+ * Map MIREX chord format to Genius Jam Tracks font symbol display [According to: SVG_fonts.otf (fonts file)]
  *
  * @return formatted innerHTML for symbol display (font) based on label and the symbol parts
  */
@@ -357,7 +389,7 @@ function _mapChordTextToSymbol(chordParts) {
   const { rootNote, accidental, shorthand, bassNote } = chordParts;
 
   // 1)Displayed root is same as root from MIREX format
-  const displayedRootNote = rootNote;
+  const displayedRootNote = `<strong>${rootNote}</strong>`;
 
   // 2)Displayed accidental according to the font mapping
   let displayedAccidental;
@@ -405,36 +437,40 @@ function _mapChordTextToSymbol(chordParts) {
  * This function sets the style of Wavesurfer markers based on whether edit mode is enabled, hiding repeated chord labels in normal mode, and disabling dragging in normal mode. The "None" chord label is only visible in edit mode.
  *
  */
-
 function _setStyleOnMarker(marker, prevChord, index) {
-  // a) Style marker line depending on edit state
-  const markerLine = marker.el.querySelector('div:nth-child(1)');
+  // a) Enable/disable dragging of marker depending on edit state
+  const markerLabel = marker.elLabel;
+  if (index === 0) {
+    markerLabel.style.marginLeft = '4px';
+  }
+  wavesurfer.util.style(markerLabel, {
+    pointerEvents: toolbarStates.EDIT_MODE ? 'auto' : 'none',
+  });
+
+  // proceed with the following ONLY when changes are saved
+  if (!toolbarStates.SAVED) return;
+
+  // b) Style marker line depending on edit state
+  const markerLine = marker.elLine;
   if (index === 0) {
     markerLine.style.width = '0px';
   } else {
     wavesurfer.util.style(
       markerLine,
-      editModeState ? EDIT_MODE_ENABLED_STYLE : EDIT_MODE_DISABLED_STYLE
+      toolbarStates.EDIT_MODE
+        ? EDIT_MODE_ENABLED_STYLE
+        : EDIT_MODE_DISABLED_STYLE
     );
   }
 
-  // b) Enable/disable dragging of marker depending on edit state
-  const markerLabel = marker.el.querySelector('.marker-label');
-  if (index === 0) {
-    markerLabel.style.marginLeft = '4px';
-  }
-  wavesurfer.util.style(markerLabel, {
-    pointerEvents: editModeState ? 'auto' : 'none',
-  });
-
   // c) Hide marker-labels depending on edit mode state
-  const chordTextSpan = marker.el.querySelector('.span-chord-text');
-  const chordSymbolSpan = marker.el.querySelector('.span-chord-symbol');
+  const chordTextSpan = marker.elChordTextSpan;
+  const chordSymbolSpan = marker.elChordSymbolSpan;
 
   const chordLabel = marker.mirLabel;
   if (chordLabel === 'N') {
     // Handle the No chord 'N' case || only visible on edit
-    if (editModeState) {
+    if (toolbarStates.EDIT_MODE) {
       {
         chordTextSpan.classList.remove('invisible-up');
         chordSymbolSpan.classList.remove('invisible-up');
@@ -453,22 +489,23 @@ function _setStyleOnMarker(marker, prevChord, index) {
       chordSymbolSpan.classList.toggle('invisible-up');
     }
 
-    // 1st option (display labels & tooltip on edit)
-    if (editModeState) {
+    // Display labels & tooltip on edit
+    if (toolbarStates.EDIT_MODE) {
       chordTextSpan.classList.toggle('invisible-up');
       chordSymbolSpan.classList.toggle('invisible-up');
     }
-
-    // // 2nd option (display ONLY tooltip on edit) // don't like probably remove
-    // chordTextSpan.style.opacity = 0;
-    // chordSymbolSpan.style.opacity = 0;
   }
+
+  // d) revert background color (cases where a chord was change with Edit chord)
+  chordTextSpan.style.backgroundColor = 'var(--color-marker-label-background)';
+  chordSymbolSpan.style.backgroundColor =
+    'var(--color-marker-label-background)';
 }
 
 function _hideRepeatedSVG(marker, prevChord) {
   const chordLabel = marker.mirLabel;
 
-  const markerLabelSvg = marker.el.querySelector('.marker-label svg');
+  const markerLabelSvg = marker.elLabelSvg;
   if (chordLabel === prevChord || marker.time === 0) {
     markerLabelSvg.classList.add('hidden');
   } else {
@@ -489,9 +526,9 @@ function _addDurationToMarker(marker, index, markers) {
   marker.duration = Math.round(duration * 1000) / 1000;
 }
 
-function _colorizeChordRegion(marker) {
+function _colorizeChordRegion(marker, index) {
   // Add a REGION for each wavesurfer.marker
-  wavesurfer.addRegion({
+  const region = wavesurfer.addRegion({
     start: marker.time,
     end: marker.time + marker.duration,
     data: {
@@ -503,7 +540,13 @@ function _colorizeChordRegion(marker) {
     loop: false,
     drag: false,
     resize: false,
+    showTooltip: false,
+    id: index,
   });
+  // console.log(region.element);
+
+  const regionsTooltipContent = _createTooltipText(marker, false);
+  region.element.setAttribute('data-tooltip', regionsTooltipContent);
 }
 
 function _getChordColor(chordLabel) {

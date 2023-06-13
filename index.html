@@ -42,16 +42,19 @@
           </div>
         </div>
 
-        <!-- toolbar -->
-        <div id="toolbar" class="d-none">
-          <div class="preface-annotation-help d-none">
-            <div>
+        <div class="preface-annotation-bar d-none">
+          <div id="preface-annotation-help">
+            <span>
               Now select an annotation with the <strong>Analyze</strong> button
               in 'Audio I/O' controls (this process later on will be automatic
-              by fetching a file from the MusiColab server)
-            </div>
+              by fetching a file from the MusiColab server)</span
+            >
           </div>
+          <div id="audio-file-name-preface">---</div>
+        </div>
 
+        <!-- toolbar -->
+        <div id="toolbar" class="d-none">
           <div id="left-toolbar-controls" class="d-none toolbar-controls">
             <button id="toggle-SnapOnBeats-btn" class="no-border">
               <i
@@ -125,55 +128,96 @@
             <div id="wavetimeline"></div>
             <div id="waveform">
               <div class="drag-text">Drop the audio file here!</div>
+              <div id="waveform-bpm" class="d-none">
+                BPM <span id="tempo-value"></span>
+              </div>
+
+              <div id="skip-forward" class="skip-cue">
+                <div class="skip-cue-arrows">
+                  <i class="fa-solid fa-caret-right fa-xl"></i>
+                  <i class="fa-solid fa-caret-right fa-xl"></i>
+                  <i class="fa-solid fa-caret-right fa-xl"></i>
+                </div>
+                <div class="skip-cue-tooltip">5 seconds</div>
+              </div>
+              <div id="skip-backward" class="skip-cue">
+                <div class="skip-cue-arrows">
+                  <i class="fa-solid fa-caret-left fa-xl"></i>
+                  <i class="fa-solid fa-caret-left fa-xl"></i>
+                  <i class="fa-solid fa-caret-left fa-xl"></i>
+                </div>
+                <div class="skip-cue-tooltip">5 seconds</div>
+              </div>
+
+              <!-- TODO on progress: -->
+
+              <!-- <div id="waveform-prev-chord" class="d-none">
+                a
+                <span id="prev-chord-value"></span>
+              </div>
+              <div id="waveform-next-chord">
+                b
+                <span id="next-chord-value"></span>
+              </div> -->
             </div>
 
-            <div id="waveform-bpm" class="d-none">
-              BPM <span id="tempo-value"></span>
-            </div>
-            <div id="waveform-prev-chord" class="d-none">
-              a
-              <span id="prev-chord-value"></span>
-            </div>
-            <div id="waveform-next-chord" class="d-none">
-              b
-              <span id="next-chord-value"></span>
-            </div>
-
-            <div class="player-controls">
+            <div class="player-controls disabled">
               <div id="left-player-controls">
-                <button id="zoom-in-btn" class="no-border no-padding disabled">
+                <button id="zoom-in-btn" class="no-border no-padding">
                   <i class="fa-solid fa-magnifying-glass-plus fa-xl"></i>
                   <div class="control-label no-padding">Zoom In</div>
                 </button>
-                <button id="zoom-out-btn" class="no-border no-padding disabled">
+                <button id="zoom-out-btn" class="no-border no-padding">
                   <i class="fa-solid fa-magnifying-glass-minus fa-xl"></i>
                   <div class="control-label no-padding">Zoom Out</div>
                 </button>
+                <button id="time-ruler-btn" class="no-border no-padding">
+                  <div>
+                    <span id="time-ruler-value">00:00.0</span>
+                    <span id="audio-duration-value">/ 00:00.0</span>
+                  </div>
+                </button>
               </div>
               <div id="center-player-controls">
-                <button id="rewind-btn" class="no-border disabled">
+                <button id="stop-btn" class="no-border">
                   <i class="fa-solid fa-backward-step fa-lg"></i>
                 </button>
-                <button id="play-pause-btn" class="no-border disabled">
+                <button id="backward-btn" class="no-border">
+                  <i class="fa-solid fa-backward fa-lg"></i>
+                </button>
+                <button id="play-pause-btn" class="no-border">
                   <i class="fa-solid fa-play fa-2xl" style="color: #008000"></i>
                   <i class="fa-solid fa-pause fa-2xl d-none"></i>
                 </button>
-                <button id="repeat-btn" class="no-border disabled">
+                <button id="forward-btn" class="no-border">
+                  <i class="fa-solid fa-forward fa-lg"></i>
+                </button>
+                <button id="record-btn" class="no-border">
+                  <i
+                    data-tippy-content=""
+                    class="fa-solid fa-circle fa-lg"
+                    style="color: #f70808"
+                  ></i>
+                </button>
+                <button id="repeat-btn" class="no-border">
                   <i data-tippy-content="" class="fa-solid fa-repeat fa-lg"></i>
                 </button>
               </div>
               <div id="right-player-controls">
-                <button id="mute-unmute-btn" class="no-border disabled">
+                <button id="autoscroll-btn" class="no-padding no-opacity">
+                  <span>Enable autoscroll</span>
+                </button>
+                <button id="mute-unmute-btn" class="no-border">
                   <i class="fa-solid fa-volume-xmark fa-lg d-none"></i>
                   <i class="fa-solid fa-volume-high fa-lg"></i>
                 </button>
                 <input
+                  id="volume-slider"
                   type="range"
                   min="0"
                   max="1"
                   step="0.05"
                   value="1"
-                  class="volume-slider disabled"
                 />
               </div>
             </div>
@@ -204,9 +248,6 @@
         </div>
 
         <!--  Demo files testing -->
-        <!-- <div id="demo-files-list">
-          <span>Try with demo files ✌️</span>
-        </div> -->
         <div
           id="demo-files-list"
           style="

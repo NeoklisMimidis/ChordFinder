@@ -1,3 +1,112 @@
+export let isModalMessageOrPromptActive = false; // useful to disable some events while modal active
+
+export function renderModalMessage(message) {
+  return new Promise((resolve, reject) => {
+    // Set the flag to indicate that the modal is active
+    isModalMessageOrPromptActive = true;
+
+    const confirmationModal = document.getElementById('confirmationModal');
+    const modalMessage = document.getElementById('modalMessage');
+    modalMessage.innerHTML = message;
+
+    const confirmDeleteBtn = document.getElementById('confirmDelete');
+    const cancelDeleteBtn = document.getElementById('cancelDelete');
+
+    confirmDeleteBtn.addEventListener('click', function () {
+      resolve(); // Resolve the promise
+      confirmationModal.classList.remove('show');
+      confirmationModal.style.display = 'none';
+      isModalMessageOrPromptActive = false;
+    });
+
+    cancelDeleteBtn.addEventListener('click', function () {
+      reject(); // Reject the promise
+      confirmationModal.classList.remove('show');
+      confirmationModal.style.display = 'none';
+      isModalMessageOrPromptActive = false;
+    });
+
+    // Display the modal after attaching the event listeners
+    confirmationModal.classList.add('show');
+    confirmationModal.style.display = 'block';
+  });
+}
+
+export function renderModalPrompt(message, jamsFile) {
+  return new Promise((resolve, reject) => {
+    // Set the flag to indicate that the modal is active
+    isModalMessageOrPromptActive = true;
+
+    const modalPrompt = document.getElementById('modalPrompt');
+    const modalPromptMessage = modalPrompt.querySelector('#modalPromptMessage');
+    modalPromptMessage.innerHTML = message;
+
+    modalPrompt.classList.add('show');
+    modalPrompt.style.display = 'block';
+
+    const savePromptBtn = document.getElementById('savePrompt');
+    const replacePromptBtn = document.getElementById('replacePrompt');
+    const closeModalBtn = document.querySelector('.modal-header .close');
+
+    _updateModalPromptForms(jamsFile);
+
+    savePromptBtn.addEventListener('click', function () {
+      resolve('save'); // Resolve the promise with the value 'save'
+      modalPrompt.classList.remove('show');
+      modalPrompt.style.display = 'none';
+      isModalMessageOrPromptActive = false;
+    });
+
+    replacePromptBtn.addEventListener('click', function () {
+      resolve('replace'); // Resolve the promise with the value 'replace'
+      modalPrompt.classList.remove('show');
+      modalPrompt.style.display = 'none';
+      isModalMessageOrPromptActive = false;
+    });
+
+    closeModalBtn.addEventListener('click', function () {
+      reject(); // Reject the promise
+      modalPrompt.classList.remove('show');
+      modalPrompt.style.display = 'none';
+      isModalMessageOrPromptActive = false;
+    });
+  });
+}
+
+function _updateModalPromptForms(jamsFile) {
+  // Updating form fields with respective
+  const annotatorNameInput = document.getElementById('annotatorName');
+  const annotationDataSourceInput = document.getElementById(
+    'annotationDataSource'
+  );
+  const annotationDescriptionInput = document.getElementById(
+    'annotationDescription'
+  );
+  const annotationList = document.getElementById('annotation-list');
+
+  // Currently selected/ displayed JAMS annotation
+  const selected = jamsFile.annotations[annotationList.selectedIndex];
+
+  annotatorNameInput.value = selected.annotation_metadata.curator.name;
+
+  let dataSourceListSelected;
+  if (selected.annotation_metadata.data_source === 'program') {
+    dataSourceListSelected = 'user';
+  } else {
+    dataSourceListSelected = selected.annotation_metadata.data_source;
+  }
+  annotationDataSourceInput.value = dataSourceListSelected;
+
+  annotationDescriptionInput.innerHTML = selected.sandbox.description;
+
+  // check whether annotationDescriptionInput is empty or not
+  if (annotationDescriptionInput.textContent.trim() === '') {
+    annotationDescriptionInput.classList.add('placeholder-text');
+  } else {
+    annotationDescriptionInput.classList.remove('placeholder-text');
+  }
+}
+//////
 export function loadFile(input) {
   // In case of not using a URL as a param and waiting for click or drag event
   if (input === undefined) {
@@ -196,4 +305,14 @@ export function areObjectsEqual(obj1, obj2) {
   }
 
   return true;
+}
+
+/**
+ * Removes HTML tags from a string.
+ *
+ * @param {string} str - The input string containing HTML tags.
+ * @returns {string} - The string with HTML tags removed.
+ */
+export function stripHtmlTags(str) {
+  return str.replace(/<[^>]+>/g, '');
 }

@@ -1,4 +1,4 @@
-import { loadAudioFile } from './audio-player.js';
+import { loadAudioFile, wavesurfer } from './audio-player.js';
 import { loadJAMS } from './render-annotations.js';
 
 import audioFileURL1 from 'url:../../demo_files/test.mp3';
@@ -13,8 +13,7 @@ import annotationFile3 from 'url:../../demo_files/05_-_Here,_There_and_Everywher
 import audioFileURL4 from 'url:../../demo_files/14_-_Tomorrow_Never_Knows.wav';
 import annotationFile4 from 'url:../../demo_files/14_-_Tomorrow_Never_Knows.jams';
 
-const variableToEstablishConnection = '';
-export { variableToEstablishConnection };
+export let variableToEstablishConnection;
 
 // create a new select element
 const selectElement = document.createElement('select');
@@ -52,7 +51,11 @@ function loadFilesInOrder(audioFileURL, annotationFile) {
     .then(() => {
       return new Promise((resolve, reject) => {
         try {
-          loadJAMS(annotationFile);
+          // loadJAMS(annotationFile);
+          setTimeout(() => {
+            loadJAMS(annotationFile);
+          }, 1000); // a small timeout to make sure that the wavesurfer.on('ready') event has been fired and avoid bugs with getDuration.
+
           resolve();
         } catch (error) {
           reject(error);
@@ -71,12 +74,7 @@ selectElement.addEventListener('change', event => {
   const fileName = document.querySelector('#audio-file-name');
   if (selectedOption === '1') {
     fileName.textContent = fileNames[1];
-    loadFilesInOrder(audioFileURL1, annotationFile1).then(() => {
-      console.log('⚠️ Start with muted state in test file');
-      setTimeout(() => {
-        document.querySelector('#mute-unmute-btn').click();
-      }, 1000); // 1000 milliseconds = 1 second
-    });
+    loadFilesInOrder(audioFileURL1, annotationFile1);
   } else if (selectedOption === '2') {
     loadFilesInOrder(audioFileURL2, annotationFile2);
     fileName.textContent = fileNames[2];
@@ -95,3 +93,8 @@ selectElement.addEventListener('change', event => {
 
 const demoFiles = document.querySelector('#demo-files-list');
 demoFiles.appendChild(selectElement);
+
+// Load one audio file with annotation included to avoid repeated importing while adding features, debugging, testing or configuring code
+// setTimeout(() => {
+//   loadFilesInOrder(audioFileURL1, annotationFile1);
+// }, 100); //
