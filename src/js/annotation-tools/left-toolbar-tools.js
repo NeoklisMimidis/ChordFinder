@@ -113,7 +113,7 @@ function snapOnBeats(startTime, event) {
     ) {
       event.stopPropagation(); // CAREFUL! stop propagation on in those 2 cases of snap cursor
       wavesurfer.seekTo(startTime / wavesurfer.getDuration());
-      if (toolbarStates.CLICK_TRACK) clickTrack(); // also add a click sound if click track is activated
+      if (toolbarStates.CLICK_TRACK && wavesurfer.isPlaying()) clickTrack(); // also add a click sound if click track is activated
     } else {
       // CAREFUL! DON'T STOP propagation HERE
       console.warn(
